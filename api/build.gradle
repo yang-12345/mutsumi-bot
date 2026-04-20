@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.rikkakawaii0612.mutsumi'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // PF4J: implementation of plugins
+    compileOnly 'org.pf4j:pf4j:3.14.1'
+
+    // SLF4J & Logback: Logger
+    compileOnly 'org.slf4j:slf4j-api:2.0.16'
+    compileOnly 'ch.qos.logback:logback-classic:1.5.13'
+
+    // Jackson: JSON resolver
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+}
+
+test {
+    useJUnitPlatform()
+}

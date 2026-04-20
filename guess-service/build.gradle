@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.rikkakawaii0612.mutsumi.guessService'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // PF4J: implementation of plugins
+    compileOnly 'org.pf4j:pf4j:3.14.1'
+    annotationProcessor 'org.pf4j:pf4j:3.14.1'
+
+    // SLF4J & Logback: Logger
+    compileOnly 'org.slf4j:slf4j-api:2.0.16'
+    compileOnly 'ch.qos.logback:logback-classic:1.5.13'
+
+    // Jackson: JSON resolver
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+
+    compileOnly project(':api')
+}
+
+jar {
+    manifest {
+        attributes(
+                'Plugin-Id': 'guess-service',
+                'Plugin-Class': 'io.github.rikkakawaii0612.mutsumi.guessService.GuessModule',
+                'Plugin-Version': project.version,
+                'Plugin-Dependencies': 'osu-api?',
+                'Plugin-Provider': 'RikkaKawaii0612'
+        )
+    }
+    from(sourceSets.main.output)
+    dependsOn configurations.runtimeClasspath
+    into('lib') {
+        from configurations.runtimeClasspath.findAll { it.name.endsWith('.jar') }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

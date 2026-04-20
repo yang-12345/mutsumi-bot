@@ -1,0 +1,6 @@
+rootProject.name = 'mutsumi-bot'
+include 'app'
+include 'api'
+include 'osu-api'
+include 'guess-service'
+include 'score-service'
