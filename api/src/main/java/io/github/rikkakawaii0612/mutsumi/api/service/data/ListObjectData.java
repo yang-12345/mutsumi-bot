@@ -1,8 +1,10 @@
 package io.github.rikkakawaii0612.mutsumi.api.service.data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ListObjectData implements ObjectData {
+    public static final ListObjectData EMPTY = new ListObjectData(List.of());
     private final List<? extends ObjectData> values;
 
     public ListObjectData(List<? extends ObjectData> values) {
@@ -14,28 +16,17 @@ public class ListObjectData implements ObjectData {
     }
 
     @Override
-    public int asInt() {
-        return 0;
+    public String toString() {
+        return "List" + this.values.toString();
     }
 
     @Override
-    public long asLong() {
-        return 0;
-    }
-
-    @Override
-    public double asDouble() {
-        return 0;
-    }
-
-    @Override
-    public boolean asBoolean() {
-        return false;
-    }
-
-    @Override
-    public String asString() {
-        return "List[]";
+    public ObjectData get(String key) {
+        try {
+            return this.values.get(Integer.parseInt(key));
+        } catch (NumberFormatException _) {
+            return EMPTY;
+        }
     }
 
     @Override
@@ -45,9 +36,13 @@ public class ListObjectData implements ObjectData {
 
     public static List<? extends ObjectData> read(ObjectData data) {
         if (data instanceof ListObjectData listObjectData) {
-            return listObjectData.values;
+            return List.copyOf(listObjectData.values);
         } else {
             return List.of();
         }
+    }
+
+    public static List<? extends ObjectData> readAsMutable(ObjectData data) {
+        return new ArrayList<>(read(data));
     }
 }

@@ -9,6 +9,10 @@ public interface Message {
         return MessageChain.of(this, message);
     }
 
+    default MessageChain append(String text) {
+        return this.append(text(text));
+    }
+
     static Text text(String text) {
         return () -> text;
     }

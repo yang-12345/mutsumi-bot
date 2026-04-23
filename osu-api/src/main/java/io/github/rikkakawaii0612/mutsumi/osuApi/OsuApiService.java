@@ -1,10 +1,12 @@
 package io.github.rikkakawaii0612.mutsumi.osuApi;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.rikkakawaii0612.mutsumi.api.service.data.ListObjectData;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.*;
 import io.github.rikkakawaii0612.mutsumi.api.service.Service;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
@@ -148,6 +150,22 @@ public class OsuApiService extends Service {
                 return this.getUserBeatmapScore(userId, beatmapId);
             }
 
+            case "getUserBeatmapScores" -> {
+                String user = request.getHeader("user");
+                String beatmap = request.getHeader("beatmap");
+                if (user.isBlank() || beatmap.isBlank()) {
+                    return ObjectData.EMPTY;
+                }
+                long userId, beatmapId;
+                try {
+                    userId = Long.parseLong(user);
+                    beatmapId = Long.parseLong(beatmap);
+                } catch (NumberFormatException _) {
+                    return ObjectData.EMPTY;
+                }
+                return this.getUserBeatmapScores(userId, beatmapId);
+            }
+
             case "getAllPlayedBeatmaps" -> {
                 String id = request.getHeader("id");
                 if (id.isBlank()) {
@@ -196,7 +214,7 @@ public class OsuApiService extends Service {
         List<JsonNode> list = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
             Optional<JsonNode> optional = this.post(
-                    String.format("users/%d/scores/best?mode=%s&limit=100&offset=%d&variant=7k",
+                    String.format("users/%d/scores/best?mode=%s&limit=100&offset=%d",
                             id, str, i * 100));
 
             if (optional.isEmpty()) {
@@ -280,6 +298,24 @@ public class OsuApiService extends Service {
         }
     }
 
+    public ObjectData getUserBeatmapScores(long user, long beatmap) {
+        if (this.accessToken == null) {
+            return ListObjectData.EMPTY;
+        }
+
+        Optional<JsonNode> optional = this.post(String.format("beatmaps/%d/scores/users/%d/all", beatmap, user));
+        if (optional.isEmpty()) {
+            return ListObjectData.EMPTY;
+        }
+
+        try {
+            return ObjectData.of(this.objectMapper.readValue(optional.get().get("scores").toString(),
+                    new TypeReference<List<Score>>() {}));
+        } catch (Exception e) {
+            return ListObjectData.EMPTY;
+        }
+    }
+
     public ObjectData getAllPlayedBeatmaps(long id) {
         if (this.accessToken == null) {
             return ObjectData.EMPTY;
@@ -328,7 +364,7 @@ public class OsuApiService extends Service {
     public void load() {
         RateLimiterConfig config = RateLimiterConfig.custom()
                 .limitForPeriod(60)
-                .limitRefreshPeriod(Duration.ofSeconds(60))
+                .limitRefreshPeriod(Duration.ofSeconds(30))
                 .timeoutDuration(Duration.ofSeconds(60))
                 .build();
         rateLimiter = RateLimiter.of("osu-api-limiter", config);
@@ -378,6 +414,6 @@ public class OsuApiService extends Service {
 
     @Override
     public String getId() {
-        return "osu-api-base";
+        return "osu-api";
     }
 }

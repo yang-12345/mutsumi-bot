@@ -1,5 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi;
 
+import io.github.rikkakawaii0612.mutsumi.impl.LocalMutsumiBotImpl;
 import io.github.rikkakawaii0612.mutsumi.service.ModuleManager;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
@@ -14,7 +15,6 @@ public class Main {
     private static ModuleManager moduleManager;
 
     static void main() {
-        System.setProperty("pf4j.debug", "true");
         moduleManager = new ModuleManager();
 
         try {
@@ -37,7 +37,7 @@ public class Main {
 
     private static void onConsoleThread() {
         Scanner scanner = new Scanner(System.in);
-        while (true) {
+        while (scanner.hasNext()) {
             try {
                 String command = scanner.nextLine();
                 if (!command.isEmpty()) {
@@ -76,6 +76,15 @@ public class Main {
                     if ("unloadAll".equals(command)) {
                         moduleManager.stopPlugins();
                         moduleManager.unloadPlugins();
+                        continue;
+                    }
+
+                    if (command.startsWith("send ")) {
+                        if (moduleManager.getBot() instanceof LocalMutsumiBotImpl bot) {
+                            bot.receiveMessage(command.substring(5));
+                        } else {
+                            LOGGER.info("No Local Mutsumi Bot present.");
+                        }
                         continue;
                     }
 

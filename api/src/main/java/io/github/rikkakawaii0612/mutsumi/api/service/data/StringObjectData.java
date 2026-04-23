@@ -8,28 +8,13 @@ public class StringObjectData implements ObjectData {
     }
 
     @Override
-    public int asInt() {
-        return 0;
-    }
-
-    @Override
-    public long asLong() {
-        return 0L;
-    }
-
-    @Override
-    public double asDouble() {
-        return 0.0D;
-    }
-
-    @Override
-    public boolean asBoolean() {
-        return !this.value.isEmpty();
-    }
-
-    @Override
     public String asString() {
         return this.value;
+    }
+
+    @Override
+    public ObjectData get(String key) {
+        return EMPTY;
     }
 
     @Override

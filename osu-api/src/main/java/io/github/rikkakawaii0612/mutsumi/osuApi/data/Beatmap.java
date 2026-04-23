@@ -2,11 +2,15 @@ package io.github.rikkakawaii0612.mutsumi.osuApi.data;
 
 import com.fasterxml.jackson.annotation.*;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Beatmap implements ObjectData {
+    private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
+
     @JsonProperty("id")
     public long id = 0L;
 
@@ -36,28 +40,26 @@ public class Beatmap implements ObjectData {
     }
 
     @Override
-    public int asInt() {
-        return Math.toIntExact(this.id);
-    }
-
-    @Override
-    public long asLong() {
-        return this.id;
-    }
-
-    @Override
-    public double asDouble() {
-        return this.id;
-    }
-
-    @Override
-    public boolean asBoolean() {
-        return this.id != 0L;
-    }
-
-    @Override
-    public String asString() {
+    public String toString() {
         return "osuApi.Beatmap(id=" + this.id + ")";
+    }
+
+    @Override
+    public ObjectData get(String key) {
+        return switch (key) {
+            case "id" -> ObjectData.of(this.id);
+            case "rating" -> ObjectData.of(this.rating);
+            case "playMode" -> ObjectData.of(this.playMode.getName());
+            case "version" -> ObjectData.of(this.version);
+            case "rankStatus" -> ObjectData.of(this.rankStatus.getName());
+            case "beatmapsetId" -> ObjectData.of(this.beatmapsetId);
+            case "cs" -> ObjectData.of(this.cs);
+            case "beatmapset" -> ObjectData.of(this.beatmapset);
+            default -> {
+                LOGGER.warn("Trying to get unknown key '{}' of Beatmap!", key);
+                yield ObjectData.EMPTY;
+            }
+        };
     }
 
     @Override

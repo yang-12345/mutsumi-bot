@@ -33,6 +33,11 @@ public class DoubleObjectData implements ObjectData {
     }
 
     @Override
+    public ObjectData get(String key) {
+        return EMPTY;
+    }
+
+    @Override
     public String getType() {
         return "base.Double";
     }

@@ -10,8 +10,8 @@ import java.util.*;
 public class GameInfo {
     private static final Logger LOGGER = LoggerFactory.getLogger("GuessService");
 
-    private final ObjectData user;
-    private final List<ObjectData> beatmaps;
+    private final ObjectData/*User*/ user;
+    private final List<ObjectData/*Beatmap*/> beatmaps;
     private final List<Character> openedCharacters;
     private final List<Character> implicitOpenedCharacters;
     private final List<Boolean> decrypted;

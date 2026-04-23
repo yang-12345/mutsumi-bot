@@ -5,6 +5,7 @@ import io.github.rikkakawaii0612.mutsumi.api.ServiceModule;
 import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
 import io.github.rikkakawaii0612.mutsumi.api.service.Service;
 import io.github.rikkakawaii0612.mutsumi.api.service.ServiceLocator;
+import io.github.rikkakawaii0612.mutsumi.impl.LocalMutsumiBotImpl;
 import io.github.rikkakawaii0612.mutsumi.impl.ModuleContextImpl;
 import io.github.rikkakawaii0612.mutsumi.impl.MutsumiBotImpl;
 import io.github.rikkakawaii0612.mutsumi.impl.ServiceLocatorImpl;
@@ -18,7 +19,7 @@ import java.util.List;
 public class ModuleManager extends DefaultPluginManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("ModuleManager");
     private final ServiceLocator serviceLocator = new ServiceLocatorImpl(this);
-    private final MutsumiBot bot = new MutsumiBotImpl(this);
+    private final MutsumiBot bot = new LocalMutsumiBotImpl(this);
 
     public ModuleManager() {
         super(Paths.get("modules"));
@@ -58,6 +59,10 @@ public class ModuleManager extends DefaultPluginManager {
         }
 
         LOGGER.info("Successfully loaded {} service(s).", servicesCount);
+    }
+
+    public MutsumiBot getBot() {
+        return bot;
     }
 
     public class ModuleFactory implements PluginFactory {

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Extension
+@Deprecated
 public class OsuDataService extends Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
 
