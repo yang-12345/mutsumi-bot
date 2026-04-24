@@ -88,22 +88,26 @@ public class OsuApiService extends Service {
                 if (!username.isBlank()) {
                     return this.getUser(username);
                 }
+                LOGGER.warn("No valid data 'id' or 'username' in request of 'getUser'");
                 return ObjectData.EMPTY;
             }
 
             case "getBestScores" -> {
                 String id = request.getHeader("id");
                 if (id.isBlank()) {
+                    LOGGER.warn("No data 'id' in request of 'getBestScores'");
                     return ObjectData.EMPTY;
                 }
                 PlayMode mode = PlayMode.of(request.getHeader("mode"));
                 if (mode == null) {
+                    LOGGER.warn("No data 'mode' in request of 'getBestScores'");
                     return ObjectData.EMPTY;
                 }
                 long l;
                 try {
                     l = Long.parseLong(id);
                 } catch (NumberFormatException _) {
+                    LOGGER.warn("Data 'id' is not a number in request of 'getBestScores'");
                     return ObjectData.EMPTY;
                 }
                 return this.getBestScores(l, mode);
@@ -112,12 +116,14 @@ public class OsuApiService extends Service {
             case "getBeatmap" -> {
                 String id = request.getHeader("id");
                 if (id.isBlank()) {
+                    LOGGER.warn("No data 'id' in request of 'getBeatmap'");
                     return ObjectData.EMPTY;
                 }
                 long l;
                 try {
                     l = Long.parseLong(id);
                 } catch (NumberFormatException _) {
+                    LOGGER.warn("Data 'id' is not a number in request of 'getBeatmap'");
                     return ObjectData.EMPTY;
                 }
                 return this.getBeatmap(l);
@@ -159,12 +165,14 @@ public class OsuApiService extends Service {
             case "getScore" -> {
                 String id = request.getHeader("id");
                 if (id.isBlank()) {
+                    LOGGER.warn("No data 'id' in request of 'getScore'");
                     return ObjectData.EMPTY;
                 }
                 long l;
                 try {
                     l = Long.parseLong(id);
                 } catch (NumberFormatException _) {
+                    LOGGER.warn("Data 'id' is not a number in request of 'getScore'");
                     return ObjectData.EMPTY;
                 }
                 return this.getScore(l);
@@ -172,15 +180,27 @@ public class OsuApiService extends Service {
 
             case "getUserBeatmapScore" -> {
                 String user = request.getHeader("user");
-                String beatmap = request.getHeader("beatmap");
-                if (user.isBlank() || beatmap.isBlank()) {
+                if (user.isBlank()) {
+                    LOGGER.warn("No data 'user' in request of 'getUserBeatmapScore'");
                     return ObjectData.EMPTY;
                 }
+                String beatmap = request.getHeader("beatmap");
+                if (beatmap.isBlank()) {
+                    LOGGER.warn("No data 'beatmap' in request of 'getUserBeatmapScore'");
+                    return ObjectData.EMPTY;
+                }
+
                 long userId, beatmapId;
                 try {
                     userId = Long.parseLong(user);
+                } catch (NumberFormatException _) {
+                    LOGGER.warn("Data 'user' is not a number in request of 'getUserBeatmapScore'");
+                    return ObjectData.EMPTY;
+                }
+                try {
                     beatmapId = Long.parseLong(beatmap);
                 } catch (NumberFormatException _) {
+                    LOGGER.warn("Data 'beatmap' is not a number in request of 'getUserBeatmapScore'");
                     return ObjectData.EMPTY;
                 }
                 return this.getUserBeatmapScore(userId, beatmapId);
@@ -188,15 +208,27 @@ public class OsuApiService extends Service {
 
             case "getUserBeatmapScores" -> {
                 String user = request.getHeader("user");
-                String beatmap = request.getHeader("beatmap");
-                if (user.isBlank() || beatmap.isBlank()) {
+                if (user.isBlank()) {
+                    LOGGER.warn("No data 'user' in request of 'getUserBeatmapScores'");
                     return ObjectData.EMPTY;
                 }
+                String beatmap = request.getHeader("beatmap");
+                if (beatmap.isBlank()) {
+                    LOGGER.warn("No data 'beatmap' in request of 'getUserBeatmapScores'");
+                    return ObjectData.EMPTY;
+                }
+
                 long userId, beatmapId;
                 try {
                     userId = Long.parseLong(user);
+                } catch (NumberFormatException _) {
+                    LOGGER.warn("Data 'user' is not a number in request of 'getUserBeatmapScores'");
+                    return ObjectData.EMPTY;
+                }
+                try {
                     beatmapId = Long.parseLong(beatmap);
                 } catch (NumberFormatException _) {
+                    LOGGER.warn("Data 'beatmap' is not a number in request of 'getUserBeatmapScores'");
                     return ObjectData.EMPTY;
                 }
                 return this.getUserBeatmapScores(userId, beatmapId);
@@ -205,12 +237,14 @@ public class OsuApiService extends Service {
             case "getAllPlayedBeatmaps" -> {
                 String id = request.getHeader("id");
                 if (id.isBlank()) {
+                    LOGGER.warn("No data 'id' in request of 'getAllPlayedBeatmaps'");
                     return ObjectData.EMPTY;
                 }
                 long l;
                 try {
                     l = Long.parseLong(id);
                 } catch (NumberFormatException _) {
+                    LOGGER.warn("Data 'id' is not a number in request of 'getAllPlayedBeatmaps'");
                     return ObjectData.EMPTY;
                 }
                 return this.getAllPlayedBeatmaps(l);
@@ -255,8 +289,6 @@ public class OsuApiService extends Service {
                             id, str, i * 100));
 
             if (optional.isEmpty()) {
-                LOGGER.warn("Found invalid response body while obtaining osu!user {}'s best scores in {} mode.",
-                        id, str);
                 return ObjectData.EMPTY;
             }
 
@@ -317,7 +349,6 @@ public class OsuApiService extends Service {
         }
 
         String url = "beatmaps?" + builder.substring(1);
-        LOGGER.info("url: {}", url);
         Optional<JsonNode> optional = this.post(url);
         if (optional.isEmpty()) {
             return ObjectData.EMPTY;
@@ -400,8 +431,6 @@ public class OsuApiService extends Service {
                             id, i * 100));
 
             if (optional.isEmpty()) {
-                LOGGER.warn("Found invalid response body while obtaining osu!user {}'s all played beatmaps.",
-                        id);
                 return ObjectData.EMPTY;
             }
 
@@ -417,7 +446,6 @@ public class OsuApiService extends Service {
                 break;
             }
         }
-        LOGGER.info("size: {}", list.size());
 
         List<BeatmapPlayCount> beatmaps = new ArrayList<>();
         try {
