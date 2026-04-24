@@ -1,8 +1,17 @@
 package io.github.rikkakawaii0612.mutsumi.api.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceModule;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
 import org.pf4j.ExtensionPoint;
+
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public abstract class Service implements ExtensionPoint {
     private ServiceModule module;
@@ -46,6 +55,22 @@ public abstract class Service implements ExtensionPoint {
 
     public ObjectData call(ObjectData data, String header) {
         return this.call(header, data);
+    }
+
+    /**
+     * 异步调用多次服务, 在全部完成后返回所有结果.
+     *
+     * @param requests 请求参数的集合
+     * @return 服务提供的数据集合
+     */
+    public List<ObjectData> callAsync(Collection<ServiceRequest> requests) {
+        try (ExecutorService executor = Executors.newFixedThreadPool(10)) {
+            List<CompletableFuture<ObjectData>> futures = requests.stream()
+                    .map(request -> CompletableFuture.supplyAsync(() -> this.call(request), executor))
+                    .toList();
+
+            return futures.stream().map(CompletableFuture::join).toList();
+        }
     }
 
     public abstract void load();
