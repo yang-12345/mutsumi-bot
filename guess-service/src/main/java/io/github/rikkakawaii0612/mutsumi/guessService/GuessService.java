@@ -82,7 +82,7 @@ public class GuessService extends Service implements MessageHandler {
             }
 
             String userParam = params[0];
-            ObjectData/*User*/ user = this.osuApiService.call(ServiceRequest.builder()
+            ObjectData /*User*/ user = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getUser")
                     .header("username", userParam)
                     .build());
@@ -91,19 +91,19 @@ public class GuessService extends Service implements MessageHandler {
                 return;
             }
 
-            List<? extends ObjectData/*Score*/> bestScores = ListObjectData.readAsMutable(
+            List<? extends ObjectData /*Score*/> bestScores = ListObjectData.readAsMutable(
                     this.osuApiService.call(ServiceRequest.builder()
                         .header("service", "getBestScores")
                         .header("id", user.getString("id"))
                         .build()
                     ));
             Random random = new Random();
-            List<ObjectData/*Beatmap*/> beatmaps = new ArrayList<>();
+            List<ObjectData /*Beatmap*/> beatmaps = new ArrayList<>();
             for (int i = 0; i < 10 && !bestScores.isEmpty();) {
-                ObjectData/*Score*/ score = bestScores.remove(random.nextInt(bestScores.size()));
-                ObjectData/*Beatmap*/ beatmap = score.get("beatmap");
+                ObjectData /*Score*/ score = bestScores.remove(random.nextInt(bestScores.size()));
+                ObjectData /*Beatmap*/ beatmap = score.get("beatmap");
                 boolean foundSimilar = false;
-                for (ObjectData/*Beatmap*/ o : beatmaps) {
+                for (ObjectData /*Beatmap*/ o : beatmaps) {
                     if (beatmap.getString("title").equals(o.getString("title"))) {
                         foundSimilar = true;
                         break;

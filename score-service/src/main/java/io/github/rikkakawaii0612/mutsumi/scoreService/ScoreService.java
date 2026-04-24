@@ -55,7 +55,7 @@ public class ScoreService extends Service implements MessageHandler {
 
         if (str.substring(1).startsWith("bp ")) {
             String param = str.substring(4);
-            /*String*/ ObjectData user = this.osuApiService.call(ServiceRequest.builder()
+            ObjectData /*String*/ user = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getUser")
                     .header("username", param)
                     .build());
@@ -73,15 +73,14 @@ public class ScoreService extends Service implements MessageHandler {
                     .append(Message.text(" 正在查找用户 " + username + " 的bp200信息……" +
                             "\n这可能需要一些时间。")));
 
-            /*List<Score>*/ ObjectData scores = this.osuApiService.call(ServiceRequest.builder()
+            ObjectData /*List<Score>*/ scores = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getBestScores")
                     .header("id", id)
                     .header("mode", "mania")
                     .build());
-            List<? extends ObjectData> list = ListObjectData.readAsMutable(scores);
-            //list.removeIf(score -> score.get("beatmap").getInt("cs") != 7);
+            List<? extends ObjectData /*Score*/> list = ListObjectData.readAsMutable(scores);
             list.sort(Comparator
-                    .comparingDouble((ObjectData value)
+                    .comparingDouble((ObjectData /*Score*/ value)
                             -> value.getDouble("pp"))
                     .reversed());
 
@@ -101,7 +100,7 @@ public class ScoreService extends Service implements MessageHandler {
 
             int limit2 = Math.min(200, list.size());
             for (int i = 0; i < limit2; i++) {
-                /*Beatmapset*/ ObjectData beatmapset = list.get(i).get("beatmapset");
+                ObjectData /*Beatmapset*/ beatmapset = list.get(i).get("beatmapset");
                 builder.append("\n")
                         .append(beatmapset.getString("artist"))
                         .append(" - ")
@@ -115,9 +114,8 @@ public class ScoreService extends Service implements MessageHandler {
         }
 
         if (str.substring(1).startsWith("bp7k ")) {
-            //todo: 先批量获取谱面 过滤完7k再获取成绩
             String param = str.substring(6);
-            /*String*/ ObjectData user = this.osuApiService.call(ServiceRequest.builder()
+            ObjectData /*String*/ user = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getUser")
                     .header("username", param)
                     .build());
@@ -135,7 +133,7 @@ public class ScoreService extends Service implements MessageHandler {
                     .append(Message.text(" 正在查找用户 " + username + " 的7k信息……" +
                             "\n这可能需要一些时间。")));
 
-            /*List<BeatmapPlayCount>*/ ObjectData beatmaps = this.osuApiService.call(ServiceRequest.builder()
+            ObjectData /*List<BeatmapPlayCount>*/ beatmaps = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getAllPlayedBeatmaps")
                     .header("id", id)
                     .build());
@@ -202,7 +200,7 @@ public class ScoreService extends Service implements MessageHandler {
                 List<? extends ObjectData> listx = ListObjectData.read(scores);
 
                 ObjectData /*Score*/ score = ObjectData.EMPTY;
-                for (ObjectData scorex : listx) {
+                for (ObjectData /*Score*/ scorex : listx) {
                     if (score.isEmpty()
                             || score.getDouble("pp") < scorex.getDouble("pp")) {
                         score = scorex;
@@ -222,7 +220,8 @@ public class ScoreService extends Service implements MessageHandler {
                     .reversed());
 
             double pp = 0.0D, multiplier = 1.0D;
-            for (Map.Entry<ObjectData, ObjectData> beatmapsetsToScore : beatmapsetsToScores) {
+            for (Map.Entry<ObjectData /*Beatmapset*/, ObjectData /*Score*/>
+                    beatmapsetsToScore : beatmapsetsToScores) {
                 pp += multiplier * beatmapsetsToScore.getValue().getDouble("pp");
                 multiplier *= 0.95D;
             }
@@ -236,7 +235,7 @@ public class ScoreService extends Service implements MessageHandler {
 
             int limit2 = Math.min(200, beatmapsetsToScores.size());
             for (int i = 0; i < limit2; i++) {
-                /*Beatmapset*/ ObjectData beatmapset = beatmapsetsToScores.get(i).getKey();
+                ObjectData /*Beatmapset*/ beatmapset = beatmapsetsToScores.get(i).getKey();
                 builder.append("\n")
                         .append(beatmapset.getString("artist"))
                         .append(" - ")
