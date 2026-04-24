@@ -3,6 +3,8 @@ package io.github.rikkakawaii0612.mutsumi.api.service.data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -59,37 +61,41 @@ public interface ObjectData {
     };
 
     default int asInt() {
-        LOGGER.warn("Unsupported casting: {} to Integer", this.getClass().getName());
+        LOGGER.warn("Unsupported casting: {} to Integer", this.getType());
         return 0;
     }
 
     default long asLong() {
-        LOGGER.warn("Unsupported casting: {} to Long", this.getClass().getName());
+        LOGGER.warn("Unsupported casting: {} to Long", this.getType());
         return 0L;
     }
 
     default double asDouble() {
-        LOGGER.warn("Unsupported casting: {} to Double", this.getClass().getName());
+        LOGGER.warn("Unsupported casting: {} to Double", this.getType());
         return 0.0D;
     }
 
     default boolean asBoolean() {
-        LOGGER.warn("Unsupported casting: {} to Boolean", this.getClass().getName());
+        LOGGER.warn("Unsupported casting: {} to Boolean", this.getType());
         return false;
     }
 
     // 请与 .toString() 区分
     default String asString() {
-        LOGGER.warn("Unsupported casting: {} to String", this.getClass().getName());
+        LOGGER.warn("Unsupported casting: {} to String", this.getType());
         return "";
     }
 
     default ObjectData get(String key) {
-        LOGGER.warn("Trying to get absent key '{}' of {}", key, this.getClass().getName());
+        LOGGER.warn("Trying to get absent key '{}' of {}", key, this.getType());
         return EMPTY;
     }
 
     String getType();
+
+    default boolean is(String type) {
+        return type.equals(this.getType());
+    }
 
     default boolean isEmpty() {
         return false;
@@ -115,28 +121,67 @@ public interface ObjectData {
         return this.get(key).asString();
     }
 
-    static IntegerObjectData of(int value) {
+    static ObjectData of(int value) {
         return new IntegerObjectData(value);
     }
 
-    static LongObjectData of(long value) {
+    static ObjectData of(long value) {
         return new LongObjectData(value);
     }
 
-    static DoubleObjectData of(double value) {
+    static ObjectData of(double value) {
         return new DoubleObjectData(value);
     }
 
-    static BooleanObjectData of(boolean value) {
+    static ObjectData of(boolean value) {
         return new BooleanObjectData(value);
     }
 
-    static StringObjectData of(String value) {
-        return new StringObjectData(value);
+    static ObjectData of(String value) {
+        return value != null ? new StringObjectData(value) : EMPTY;
     }
 
     static ListObjectData of(List<? extends ObjectData> value) {
-        return new ListObjectData(value != null ? value : List.of());
+        return value != null ? new ListObjectData(value) : ListObjectData.EMPTY;
+    }
+
+    static ListObjectData of(int[] value) {
+        return value != null ?
+                new ListObjectData(Arrays.stream(value).mapToObj(IntegerObjectData::new).toList())
+                : ListObjectData.EMPTY;
+    }
+
+    static ListObjectData of(long[] value) {
+        return value != null ?
+                new ListObjectData(Arrays.stream(value).mapToObj(LongObjectData::new).toList())
+                : ListObjectData.EMPTY;
+    }
+
+    static ListObjectData of(double[] value) {
+        return value != null ?
+                new ListObjectData(Arrays.stream(value).mapToObj(DoubleObjectData::new).toList())
+                : ListObjectData.EMPTY;
+    }
+
+    static ListObjectData of(boolean[] value) {
+        if (value == null) {
+            return ListObjectData.EMPTY;
+        }
+        List<BooleanObjectData> list = new ArrayList<>();
+        for (boolean bl : value) {
+            list.add(new BooleanObjectData(bl));
+        }
+        return new ListObjectData(list);
+    }
+
+    static ListObjectData of(String[] value) {
+        return value != null ?
+                new ListObjectData(Arrays.stream(value).map(StringObjectData::new).toList())
+                : ListObjectData.EMPTY;
+    }
+
+    static ListObjectData of(ObjectData[] value) {
+        return value != null ? new ListObjectData(List.of(value)) : ListObjectData.EMPTY;
     }
 
     static ObjectData of(ObjectData value) {

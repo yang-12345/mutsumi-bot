@@ -18,7 +18,7 @@ import java.util.List;
 
 public class ModuleManager extends DefaultPluginManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("ModuleManager");
-    private final ServiceLocator serviceLocator = new ServiceLocatorImpl(this);
+    private final ServiceLocatorImpl serviceLocator = new ServiceLocatorImpl(this);
     private final MutsumiBot bot = new LocalMutsumiBotImpl(this);
 
     public ModuleManager() {
@@ -36,6 +36,7 @@ public class ModuleManager extends DefaultPluginManager {
     }
 
     public void loadModules() {
+        this.addPluginStateListener(_ -> this.serviceLocator.update());
         this.loadPlugins();
         this.startPlugins();
 

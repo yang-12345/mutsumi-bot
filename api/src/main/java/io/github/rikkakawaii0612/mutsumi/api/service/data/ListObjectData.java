@@ -25,7 +25,7 @@ public class ListObjectData implements ObjectData {
         try {
             return this.values.get(Integer.parseInt(key));
         } catch (NumberFormatException _) {
-            return EMPTY;
+            return ObjectData.EMPTY;
         }
     }
 

@@ -7,6 +7,7 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import io.github.rikkakawaii0612.mutsumi.api.handler.MessageHandler;
 import io.github.rikkakawaii0612.mutsumi.api.service.Service;
 import io.github.rikkakawaii0612.mutsumi.api.service.ServiceNotFoundException;
+import io.github.rikkakawaii0612.mutsumi.api.service.ServiceReference;
 import io.github.rikkakawaii0612.mutsumi.api.service.ServiceRequest;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ListObjectData;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
@@ -20,6 +21,8 @@ import java.util.*;
 public class ScoreService extends Service implements MessageHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger("ScoreService");
 
+    private ServiceReference osuApiService;
+
     public ScoreService() {
     }
 
@@ -30,6 +33,7 @@ public class ScoreService extends Service implements MessageHandler {
 
     @Override
     public void load() {
+        this.osuApiService = this.getModule().getServiceLocator().getService("osu-api");
     }
 
     @Override
@@ -50,10 +54,8 @@ public class ScoreService extends Service implements MessageHandler {
         }
 
         if (str.substring(1).startsWith("bp ")) {
-            Service osuApiService = this.getModule().getServiceLocator().getService("osu-api")
-                    .orElseThrow(ServiceNotFoundException::new);
             String param = str.substring(4);
-            /*String*/ ObjectData user = osuApiService.call(ServiceRequest.builder()
+            /*String*/ ObjectData user = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getUser")
                     .header("username", param)
                     .build());
@@ -71,7 +73,7 @@ public class ScoreService extends Service implements MessageHandler {
                     .append(Message.text(" 正在查找用户 " + username + " 的bp200信息……" +
                             "\n这可能需要一些时间。")));
 
-            /*List<Score>*/ ObjectData scores = osuApiService.call(ServiceRequest.builder()
+            /*List<Score>*/ ObjectData scores = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getBestScores")
                     .header("id", id)
                     .header("mode", "mania")
@@ -113,10 +115,9 @@ public class ScoreService extends Service implements MessageHandler {
         }
 
         if (str.substring(1).startsWith("bp7k ")) {
-            Service osuApiService = this.getModule().getServiceLocator().getService("osu-api")
-                    .orElseThrow(ServiceNotFoundException::new);
+            //todo: 先批量获取谱面 过滤完7k再获取成绩
             String param = str.substring(6);
-            /*String*/ ObjectData user = osuApiService.call(ServiceRequest.builder()
+            /*String*/ ObjectData user = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getUser")
                     .header("username", param)
                     .build());
@@ -134,64 +135,73 @@ public class ScoreService extends Service implements MessageHandler {
                     .append(Message.text(" 正在查找用户 " + username + " 的7k信息……" +
                             "\n这可能需要一些时间。")));
 
-            /*List<BeatmapPlayCount>*/ ObjectData beatmaps = osuApiService.call(ServiceRequest.builder()
+            /*List<BeatmapPlayCount>*/ ObjectData beatmaps = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getAllPlayedBeatmaps")
                     .header("id", id)
                     .build());
             List<? extends ObjectData> list = ListObjectData.readAsMutable(beatmaps);
-            List<Map.Entry<ObjectData, ObjectData>> rankedManiaBeatmaps = new ArrayList<>();
 
-            int played7kBeatmaps = 0;
-            for (ObjectData beatmapPlayCount : list) {
-                /*Beatmap*/ ObjectData beatmap = beatmapPlayCount.get("beatmap");
+            List<Map.Entry<ObjectData /*Beatmap*/, ObjectData /*Beatmapset*/>>
+                    beatmapsToBeatmapsets = new ArrayList<>();
 
-                String playMode = beatmap.get("playMode").asString();
-                if (!"mania".equals(playMode)) continue;
+            for (Iterator<? extends ObjectData> iterator = list.iterator(); iterator.hasNext(); ) {
+                List<Map.Entry<ObjectData /*Beatmap*/, ObjectData /*Beatmapset*/>>
+                        beatmapsToPost = new ArrayList<>();
 
-                String status = beatmap.get("rankStatus").asString();
-                if (!"ranked".equals(status)) continue;
+                // 收集50个谱面一组进行post
+                while (beatmapsToPost.size() < 50 && iterator.hasNext()) {
+                    ObjectData /*BeatmapPlayCount*/ beatmapPlayCount = iterator.next();
+                    ObjectData /*Beatmap*/ beatmap = beatmapPlayCount.get("beatmap");
 
-                /*Beatmapset*/ ObjectData beatmapset = beatmapPlayCount.get("beatmapset");
-                if (beatmapset.isEmpty()) {
-                    continue;
+                    String playMode = beatmap.get("playMode").asString();
+                    if (!"mania".equals(playMode)) continue;
+
+                    String status = beatmap.get("rankStatus").asString();
+                    if (!"ranked".equals(status)) continue;
+
+                    beatmapsToPost.add(new AbstractMap.SimpleEntry<>(beatmap, beatmapPlayCount.get("beatmapset")));
                 }
 
-//                /*Beatmap*/ ObjectData beatmapExtended = osuApiService.call(ServiceRequest.builder()
-//                        .header("service", "getBeatmap")
-//                        .header("id", beatmap.getString("id"))
-//                        .build());
-//
-//                if (beatmapExtended.get("cs").asInt() != 7) {
-//                    continue;
-//                }
+                List<ObjectData /*Long*/> ids = beatmapsToPost.stream()
+                        .map(o -> o.getKey().get("id"))
+                        .toList();
+                ObjectData /*List<Beatmap>*/ objectData = osuApiService.call(ServiceRequest.builder()
+                        .header("service", "getBeatmaps")
+                        .data("ids", ObjectData.of(ids))
+                        .build());
 
-                rankedManiaBeatmaps.add(new AbstractMap.SimpleEntry<>(beatmap, beatmapset));
+                List<? extends ObjectData /*Beatmap*/> beatmapsExtended = ListObjectData.read(objectData);
+
+                // 筛选7K谱面
+                for (int i = 0; i < beatmapsExtended.size(); i++) {
+                    ObjectData /*Beatmap*/ o = beatmapsExtended.get(i);
+                    if (o.getInt("cs") == 7) {
+                        beatmapsToBeatmapsets.add(new AbstractMap.SimpleEntry<>(o, beatmapsToPost.get(i).getValue()));
+                    }
+                }
             }
-            LOGGER.info("rankedManiaBeatmaps beatmap size: {}", rankedManiaBeatmaps.size());
+            LOGGER.info("rankedManiaBeatmaps beatmap size: {}", beatmapsToBeatmapsets.size());
 
-            List<Map.Entry<ObjectData, ObjectData>> beatmapsetsToScores = new ArrayList<>();
-            int k = 0;
-            for (Map.Entry<ObjectData, ObjectData> entry : rankedManiaBeatmaps) {
-                k++;
-                if (k % 10 == 0) {
-                    LOGGER.info("Progress: {} / {}; {} 7K Beatmaps Found", k, rankedManiaBeatmaps.size(), beatmapsetsToScores.size());
+            List<Map.Entry<ObjectData /*Beatmapset*/, ObjectData /*Score*/>>
+                    beatmapsetsToScores = new ArrayList<>();
+            for (int i = 0; i < beatmapsToBeatmapsets.size(); i++) {
+                Map.Entry<ObjectData /*Beatmap*/, ObjectData /*Beatmapset*/>
+                        entry = beatmapsToBeatmapsets.get(i);
+                if (i % 10 == 0) {
+                    LOGGER.info("Progress: {} / {}; {} 7K Beatmaps Found",
+                            i, beatmapsToBeatmapsets.size(), beatmapsetsToScores.size());
                 }
 
-                /*List<Score>*/ ObjectData scores = osuApiService.call(ServiceRequest.builder()
+
+                ObjectData /*List<Score>*/ scores = this.osuApiService.call(ServiceRequest.builder()
                         .header("service", "getUserBeatmapScores")
                         .header("user", id)
                         .header("beatmap", entry.getKey().getString("id"))
                         .build());
-//                // 游玩但没结算过的成绩会返回空
-//                if (beatmapUserScore.isEmpty()) {
-//                    continue;
-//                }
 
                 List<? extends ObjectData> listx = ListObjectData.read(scores);
 
-
-                // /*Score*/ ObjectData score = beatmapUserScore.get("score");
-                /*Score*/ ObjectData score = ObjectData.EMPTY;
+                ObjectData /*Score*/ score = ObjectData.EMPTY;
                 for (ObjectData scorex : listx) {
                     if (score.isEmpty()
                             || score.getDouble("pp") < scorex.getDouble("pp")) {
@@ -200,28 +210,20 @@ public class ScoreService extends Service implements MessageHandler {
                 }
 
                 if (!score.isEmpty()) {
-                    // /*Beatmap*/ ObjectData beatmap = score.get("beatmap");
-                    /*Beatmap*/ ObjectData beatmapExtended = osuApiService.call(ServiceRequest.builder()
-                        .header("service", "getBeatmap")
-                        .header("id", score.getString("beatmapId"))
-                        .build());
-                    int keyCount = beatmapExtended.getInt("cs");
-                    if (keyCount == 7) {
-                        beatmapsetsToScores.add(new AbstractMap.SimpleEntry<>(entry.getValue(), score));
-                    }
+                    beatmapsetsToScores.add(new AbstractMap.SimpleEntry<>(entry.getValue(), score));
                 }
             }
-            LOGGER.info("beatmapsetsToScores size: {}", beatmapsetsToScores.size());
+
+            LOGGER.info("bestScores size: {}", beatmapsetsToScores.size());
 
             beatmapsetsToScores.sort(Comparator
                     .comparingDouble((Map.Entry<ObjectData, ObjectData> value)
                             -> value.getValue().getDouble("pp"))
                     .reversed());
 
-            int limit = Math.min(200, beatmapsetsToScores.size());
             double pp = 0.0D, multiplier = 1.0D;
-            for (int i = 0; i < limit; i++) {
-                pp += multiplier * beatmapsetsToScores.get(i).getValue().getDouble("pp");
+            for (Map.Entry<ObjectData, ObjectData> beatmapsetsToScore : beatmapsetsToScores) {
+                pp += multiplier * beatmapsetsToScore.getValue().getDouble("pp");
                 multiplier *= 0.95D;
             }
 

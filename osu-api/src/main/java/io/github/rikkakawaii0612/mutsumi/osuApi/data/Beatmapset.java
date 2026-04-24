@@ -2,6 +2,7 @@ package io.github.rikkakawaii0612.mutsumi.osuApi.data;
 
 import com.fasterxml.jackson.annotation.*;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
+import io.github.rikkakawaii0612.mutsumi.api.util.DuplicatableObjectIdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +32,9 @@ public class Beatmapset implements ObjectData {
     @JsonProperty("creator")
     public String creator = "";
 
-    @JsonProperty("beatmaps")
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,
+            property = "id",
+            resolver = DuplicatableObjectIdResolver.class)
     public List<Beatmap> beatmaps;
 
     @Override

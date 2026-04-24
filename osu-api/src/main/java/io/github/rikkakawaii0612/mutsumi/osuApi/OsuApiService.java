@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.rikkakawaii0612.mutsumi.api.service.data.IntegerObjectData;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ListObjectData;
+import io.github.rikkakawaii0612.mutsumi.api.service.data.LongObjectData;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.*;
 import io.github.rikkakawaii0612.mutsumi.api.service.Service;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
@@ -23,6 +25,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -120,6 +123,39 @@ public class OsuApiService extends Service {
                 return this.getBeatmap(l);
             }
 
+            case "getBeatmaps" -> {
+                ObjectData data = request.getData("ids");
+                if (data.isEmpty()) {
+                    LOGGER.warn("No data 'ids' in request of 'getBeatmaps'");
+                    return ObjectData.EMPTY;
+                }
+                if (!data.is("base.List")) {
+                    LOGGER.warn("Data 'ids' is expected to be List, but found {} in request of 'getBeatmaps'",
+                            data.getType());
+                    return ObjectData.EMPTY;
+                }
+
+                List<? extends ObjectData> listObjectData = ListObjectData.read(data);
+                if (listObjectData.isEmpty()) {
+                    LOGGER.warn("List data 'ids' is empty in request of 'getBeatmaps'");
+                    return ObjectData.EMPTY;
+                }
+
+                long[] ids = new long[listObjectData.size()];
+                for (int i = 0; i < listObjectData.size(); i++) {
+                    ObjectData o = listObjectData.get(i);
+                    if (!o.is("base.Long")) {
+                        LOGGER.warn("Data 'ids' is expected to contain Long element," +
+                                        " but found {} in request of 'getBeatmaps'",
+                                data.getType());
+                        return ObjectData.EMPTY;
+                    }
+                    ids[i] = o.asLong();
+                }
+
+                return this.getBeatmaps(ids);
+            }
+
             case "getScore" -> {
                 String id = request.getHeader("id");
                 if (id.isBlank()) {
@@ -187,7 +223,7 @@ public class OsuApiService extends Service {
         }
     }
 
-    public ObjectData getUser(String username) {
+    private ObjectData getUser(String username) {
         if (this.accessToken == null) {
             return ObjectData.EMPTY;
         }
@@ -201,11 +237,12 @@ public class OsuApiService extends Service {
         try {
             return this.objectMapper.readValue(optional.get().toString(), User.class);
         } catch (Exception e) {
+            LOGGER.warn("Failed to resolve Score: ", e);
             return ObjectData.EMPTY;
         }
     }
 
-    public ObjectData getBestScores(long id, PlayMode mode) {
+    private ObjectData getBestScores(long id, PlayMode mode) {
         if (this.accessToken == null) {
             return ObjectData.EMPTY;
         }
@@ -239,15 +276,15 @@ public class OsuApiService extends Service {
             for (JsonNode jsonNode : list) {
                 scores.add(this.objectMapper.readValue(jsonNode.toString(), Score.class));
             }
-        } catch (JsonProcessingException e) {
-            LOGGER.warn("Failed to process osu!user {}'s best scores in {} mode: ", id, str, e);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to resolve Score: ", e);
             return ObjectData.EMPTY;
         }
 
         return ObjectData.of(scores);
     }
 
-    public ObjectData getBeatmap(long id) {
+    private ObjectData getBeatmap(long id) {
         if (this.accessToken == null) {
             return ObjectData.EMPTY;
         }
@@ -260,11 +297,43 @@ public class OsuApiService extends Service {
         try {
             return this.objectMapper.readValue(optional.get().toString(), Beatmap.class);
         } catch (Exception e) {
+            LOGGER.warn("Failed to resolve Beatmap: ", e);
             return ObjectData.EMPTY;
         }
     }
 
-    public ObjectData getScore(long id) {
+    private ObjectData getBeatmaps(long[] ids) {
+        if (this.accessToken == null) {
+            return ObjectData.EMPTY;
+        }
+
+        if (ids.length == 0) {
+            return ObjectData.EMPTY;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (long id : ids) {
+            builder.append("&ids%5B%5D=").append(id);
+        }
+
+        String url = "beatmaps?" + builder.substring(1);
+        LOGGER.info("url: {}", url);
+        Optional<JsonNode> optional = this.post(url);
+        if (optional.isEmpty()) {
+            return ObjectData.EMPTY;
+        }
+
+        try {
+            List<Beatmap> list = this.objectMapper.readValue(optional.get().get("beatmaps").toString(),
+                    new TypeReference<>() {});
+            return ObjectData.of(list);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to resolve List<Beatmap>: ", e);
+            return ObjectData.EMPTY;
+        }
+    }
+
+    private ObjectData getScore(long id) {
         if (this.accessToken == null) {
             return ObjectData.EMPTY;
         }
@@ -281,7 +350,7 @@ public class OsuApiService extends Service {
         }
     }
 
-    public ObjectData getUserBeatmapScore(long user, long beatmap) {
+    private ObjectData getUserBeatmapScore(long user, long beatmap) {
         if (this.accessToken == null) {
             return ObjectData.EMPTY;
         }
@@ -294,11 +363,12 @@ public class OsuApiService extends Service {
         try {
             return this.objectMapper.readValue(optional.get().toString(), BeatmapUserScore.class);
         } catch (Exception e) {
+            LOGGER.warn("Failed to resolve BeatmapUserScore: ", e);
             return ObjectData.EMPTY;
         }
     }
 
-    public ObjectData getUserBeatmapScores(long user, long beatmap) {
+    private ObjectData getUserBeatmapScores(long user, long beatmap) {
         if (this.accessToken == null) {
             return ListObjectData.EMPTY;
         }
@@ -309,14 +379,16 @@ public class OsuApiService extends Service {
         }
 
         try {
-            return ObjectData.of(this.objectMapper.readValue(optional.get().get("scores").toString(),
-                    new TypeReference<List<Score>>() {}));
+            List<Score> list = this.objectMapper.readValue(optional.get().get("scores").toString(),
+                    new TypeReference<>() {});
+            return ObjectData.of(list);
         } catch (Exception e) {
+            LOGGER.warn("Failed to resolve List<BeatmapUserScore>: ", e);
             return ListObjectData.EMPTY;
         }
     }
 
-    public ObjectData getAllPlayedBeatmaps(long id) {
+    private ObjectData getAllPlayedBeatmaps(long id) {
         if (this.accessToken == null) {
             return ObjectData.EMPTY;
         }
@@ -352,8 +424,8 @@ public class OsuApiService extends Service {
             for (JsonNode jsonNode : list) {
                 beatmaps.add(this.objectMapper.readValue(jsonNode.toString(), BeatmapPlayCount.class));
             }
-        } catch (JsonProcessingException e) {
-            LOGGER.warn("Failed to process osu!user {}'s all played beatmaps.", id, e);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to resolve BeatmapPlayCount: ", e);
             return ObjectData.EMPTY;
         }
 

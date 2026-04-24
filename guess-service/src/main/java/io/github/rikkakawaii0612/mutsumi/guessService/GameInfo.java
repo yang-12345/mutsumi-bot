@@ -1,6 +1,5 @@
 package io.github.rikkakawaii0612.mutsumi.guessService;
 
-import io.github.rikkakawaii0612.mutsumi.api.service.Service;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,17 +121,12 @@ public class GameInfo {
         }
 
         GuessModule module = GuessModule.getInstance();
-        Optional<Service> optional = module.getServiceLocator().getService("osu-api-util");
-        if (optional.isEmpty()) {
-            LOGGER.warn("Cannot find service 'osu-api-util'!");
-            return false;
-        }
-        Service osuDataService = optional.get();
 
-        String title = osuDataService.call(this.beatmaps.get(index), "title").asString();
+        ObjectData beatmap = this.beatmaps.get(index);
+        String title = beatmap.getString("title");
         Set<String> set = new HashSet<>(module.aliasSystem.getAliases(title));
         set.add(title);
-        set.add(osuDataService.call(this.beatmaps.get(index), "titleUnicode").asString());
+        set.add(beatmap.getString("titleUnicode"));
         for (String s : set) {
             if (matches(s, text)) {
                 this.decrypted.set(index, true);
@@ -163,18 +157,11 @@ public class GameInfo {
     }
 
     public List<String> query() {
-        Optional<Service> optional = GuessModule.getInstance().getServiceLocator().getService("osu-api-util");
-        if (optional.isEmpty()) {
-            LOGGER.warn("Cannot find service 'osu-api-util'!");
-            return List.of();
-        }
-        Service osuDataService = optional.get();
-
         List<String> list = new ArrayList<>();
         for (int i = 0; i < this.beatmaps.size(); i++) {
-            ObjectData beatmap = this.beatmaps.get(i);
-            String artist = osuDataService.call(beatmap, this.unicode ? "artistUnicode" : "artist").asString();
-            String title = osuDataService.call(beatmap, this.unicode ? "titleUnicode" : "title").asString();
+            ObjectData/*Beatmap*/ beatmap = this.beatmaps.get(i);
+            String artist = beatmap.getString(this.unicode ? "artistUnicode" : "artist");
+            String title = beatmap.getString(this.unicode ? "titleUnicode" : "title");
             if (this.decrypted.get(i)) {
                 list.add(artist + " - " + title);
             } else {

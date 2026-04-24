@@ -6,7 +6,7 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import io.github.rikkakawaii0612.mutsumi.api.handler.MessageHandler;
 import io.github.rikkakawaii0612.mutsumi.api.service.Service;
-import io.github.rikkakawaii0612.mutsumi.api.service.ServiceNotFoundException;
+import io.github.rikkakawaii0612.mutsumi.api.service.ServiceReference;
 import io.github.rikkakawaii0612.mutsumi.api.service.ServiceRequest;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ListObjectData;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Extension
 public class GuessService extends Service implements MessageHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger("GuessService");
+    private ServiceReference osuApiService;
 
     private final Map<Long, GameInfo> gameInfos = new ConcurrentHashMap<>();
 
@@ -33,6 +34,7 @@ public class GuessService extends Service implements MessageHandler {
 
     @Override
     public void load() {
+        this.osuApiService = this.getModule().getServiceLocator().getService("osu-api");
     }
 
     @Override
@@ -80,9 +82,7 @@ public class GuessService extends Service implements MessageHandler {
             }
 
             String userParam = params[0];
-            Service osuApiService = this.getModule().getServiceLocator().getService("osu-api")
-                    .orElseThrow(ServiceNotFoundException::new);
-            ObjectData/*User*/ user = osuApiService.call(ServiceRequest.builder()
+            ObjectData/*User*/ user = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getUser")
                     .header("username", userParam)
                     .build());
@@ -92,7 +92,7 @@ public class GuessService extends Service implements MessageHandler {
             }
 
             List<? extends ObjectData/*Score*/> bestScores = ListObjectData.readAsMutable(
-                    osuApiService.call(ServiceRequest.builder()
+                    this.osuApiService.call(ServiceRequest.builder()
                         .header("service", "getBestScores")
                         .header("id", user.getString("id"))
                         .build()
