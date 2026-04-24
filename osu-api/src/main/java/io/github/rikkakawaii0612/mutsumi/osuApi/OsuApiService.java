@@ -1,14 +1,11 @@
 package io.github.rikkakawaii0612.mutsumi.osuApi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
-import io.github.rikkakawaii0612.mutsumi.api.service.data.IntegerObjectData;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ListObjectData;
-import io.github.rikkakawaii0612.mutsumi.api.service.data.LongObjectData;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.*;
 import io.github.rikkakawaii0612.mutsumi.api.service.Service;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
@@ -24,17 +21,20 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Extension
 public class OsuApiService extends Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
     private static final String API_BASE_URL = "https://osu.ppy.sh/api/v2/";
 
-    private static RateLimiter rateLimiter;
+
+    private final RateLimiter rateLimiter = RateLimiter.of("osu-api-limiter",
+            RateLimiterConfig.custom()
+                    .limitForPeriod(60)
+                    .limitRefreshPeriod(Duration.ofSeconds(30))
+                    .timeoutDuration(Duration.ofSeconds(60))
+                    .build());
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -53,24 +53,28 @@ public class OsuApiService extends Service {
             return Optional.empty();
         }
 
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(API_BASE_URL + url))
+                .header("Authorization", "Bearer " + this.accessToken)
+                .header("x-api-version", "20250410")
+                .GET()
+                .build();
+
+        HttpResponse<String> response;
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(API_BASE_URL + url))
-                    .header("Authorization", "Bearer " + this.accessToken)
-                    .header("x-api-version", "20250410")
-                    .GET()
-                    .build();
+            response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception _) {
+            return Optional.empty();
+        }
 
-            HttpResponse<String> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            return Optional.empty();
+        }
 
-            if (response.statusCode() != 200) {
-                return Optional.empty();
-            }
-
+        try {
             return Optional.ofNullable(this.objectMapper.readTree(response.body()));
-
         } catch (Exception e) {
-            LOGGER.warn("Http post failed: ", e);
+            LOGGER.warn("Http response is not a json object: ", e);
             return Optional.empty();
         }
     }
@@ -462,13 +466,6 @@ public class OsuApiService extends Service {
 
     @Override
     public void load() {
-        RateLimiterConfig config = RateLimiterConfig.custom()
-                .limitForPeriod(60)
-                .limitRefreshPeriod(Duration.ofSeconds(30))
-                .timeoutDuration(Duration.ofSeconds(60))
-                .build();
-        rateLimiter = RateLimiter.of("osu-api-limiter", config);
-
         JsonNode node = this.getModule().getConfig();
         if (!node.has("clientId") || !node.has("clientSecret")) {
             LOGGER.warn("Cannot read client id and client secret from config!");
@@ -509,7 +506,7 @@ public class OsuApiService extends Service {
 
     @Override
     public void unload() {
-        this.httpClient.close();
+        this.httpClient.shutdown();
     }
 
     @Override
