@@ -28,10 +28,18 @@ public class OsuApiService extends Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
     private static final String API_BASE_URL = "https://osu.ppy.sh/api/v2/";
 
-    private final Bucket bucket = Bucket.builder()
+    // 长期限流, 最多存储 60 个令牌, 每秒补充 1 个
+    private final Bucket longTerm = Bucket.builder()
             .addLimit(Bandwidth.builder()
                     .capacity(60L)
                     .refillGreedy(1L, Duration.ofSeconds(1L))
+                    .build())
+            .build();
+    // 突发限流, 使 post 请求必须间隔至少 0.08s
+    private final Bucket interval = Bucket.builder()
+            .addLimit(Bandwidth.builder()
+                    .capacity(1L)
+                    .refillGreedy(1L, Duration.ofMillis(80L))
                     .build())
             .build();
 
