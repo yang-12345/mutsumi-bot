@@ -49,6 +49,7 @@ public class OsuApiService extends Service {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private String accessToken;
+    private long tokenExpiredAt = Long.MIN_VALUE;
 
     public OsuApiService() {
     }
@@ -101,6 +102,7 @@ public class OsuApiService extends Service {
 
     @Override
     public ObjectData call(ServiceRequest request) {
+        this.checkAccessToken();
         String service = request.getHeader("service");
         switch (service) {
             case "getUser" -> {
@@ -491,12 +493,22 @@ public class OsuApiService extends Service {
         return ObjectData.of(beatmaps);
     }
 
-    @Override
-    public void load() {
+    private void checkAccessToken() {
+        // 设置 Access Token 有效期 23h55min, 留 5min 期限空间
+        if (System.nanoTime() > this.tokenExpiredAt + 86100000000000L) {
+            String str = this.getAccessToken();
+            if (str != null) {
+                this.tokenExpiredAt = System.nanoTime();
+                this.accessToken = str;
+            }
+        }
+    }
+
+    private String getAccessToken() {
         JsonNode node = this.getModule().getConfig();
         if (!node.has("clientId") || !node.has("clientSecret")) {
-            LOGGER.warn("Cannot read client id and client secret from config!");
-            return;
+            LOGGER.warn("Cannot read client id and client secret from config");
+            return null;
         }
 
         String clientId = node.get("clientId").asText();
@@ -504,8 +516,7 @@ public class OsuApiService extends Service {
 
         String requestBody = String.format(
                 "{\"client_id\":\"%s\",\"client_secret\":\"%s\",\"grant_type\":\"client_credentials\",\"scope\":\"public\"}",
-                clientId, clientSecret
-        );
+                clientId, clientSecret);
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -520,14 +531,25 @@ public class OsuApiService extends Service {
             }
 
             if (response.statusCode() != 200) {
-                throw new RuntimeException("Failed to get access token. Status code: " + response.statusCode());
+                LOGGER.warn("Failed to get access token. Status Code: {}", response.statusCode());
+                return null;
             }
 
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.body());
-            this.accessToken = jsonNode.get("access_token").asText();
+            return jsonNode.get("access_token").asText();
         } catch (Exception e) {
             LOGGER.warn("Cannot get access token: ", e);
+            return null;
+        }
+    }
+
+    @Override
+    public void load() {
+        String str = this.getAccessToken();
+        if (str != null) {
+            this.tokenExpiredAt = System.nanoTime();
+            this.accessToken = str;
         }
     }
 
