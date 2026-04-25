@@ -22,6 +22,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Extension
 public class OsuApiService extends Service {
@@ -50,12 +53,14 @@ public class OsuApiService extends Service {
     public OsuApiService() {
     }
 
-    // you don't need to add prefix API_BASE_URL
-    public Optional<JsonNode> post(String url) {
+    // 不需要 API_BASE_URL 前缀
+    private Optional<JsonNode> post(String url) {
         try {
-            if (this.bucket.asBlocking().tryConsume(1, Duration.ofSeconds(60L))) {
+            if (this.longTerm.asBlocking().tryConsume(1, Duration.ofSeconds(60L))
+                    && this.interval.asBlocking().tryConsume(1, Duration.ofSeconds(60L))) {
                 return doPost(url);
             } else {
+                LOGGER.warn("Too many post request!");
                 return Optional.empty();
             }
         } catch (InterruptedException e) {
@@ -443,32 +448,39 @@ public class OsuApiService extends Service {
             return ObjectData.EMPTY;
         }
 
-        List<JsonNode> list = new ArrayList<>();
-        for (int i = 0; ; i++) {
-            Optional<JsonNode> optional = this.post(
-                    String.format("users/%d/beatmapsets/most_played?limit=100&offset=%d",
-                            id, i * 100));
+        List<JsonNode> nodes = new ArrayList<>();
 
-            if (optional.isEmpty()) {
-                return ObjectData.EMPTY;
-            }
+        // 异步 post 获取游玩次数最多的谱面 (实际上包含了所有谱面)
+        // 每次循环尝试同时获取 4 页 (400 个) 谱面
+        try (ExecutorService executor = Executors.newFixedThreadPool(4)) {
+            for (int i = 0; ; i++) {
+                List<CompletableFuture<Optional<JsonNode>>> futures = new ArrayList<>();
 
-            JsonNode node = optional.get();
-            if (!node.isArray()) {
-                LOGGER.warn("Found non-array response body while obtaining osu!user {}'s all played beatmaps.",
-                        id);
-                return ObjectData.EMPTY;
-            }
+                for (int j = 0; j < 4; j++) {
+                    int offset = j + 4 * i;
+                    futures.add(CompletableFuture.supplyAsync(() -> this.post(
+                            String.format("users/%d/beatmapsets/most_played?limit=100&offset=%d",
+                                    id, offset * 100)), executor));
+                }
+                // 其实应该给 Optional.empty() 加个处理的
+                List<JsonNode> list = futures.stream()
+                        .map(CompletableFuture::join)
+                        .flatMap(Optional::stream)
+                        .toList();
+                // JSON 数组拆解存入列表
+                for (JsonNode node : list) {
+                    node.forEach(nodes::add);
+                }
 
-            node.forEach(list::add);
-            if (node.size() < 100) {
-                break;
+                if (nodes.isEmpty() || list.getLast().size() < 100) {
+                    break;
+                }
             }
         }
 
         List<BeatmapPlayCount> beatmaps = new ArrayList<>();
         try {
-            for (JsonNode jsonNode : list) {
+            for (JsonNode jsonNode : nodes) {
                 beatmaps.add(this.objectMapper.readValue(jsonNode.toString(), BeatmapPlayCount.class));
             }
         } catch (Exception e) {
