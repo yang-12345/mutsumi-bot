@@ -42,10 +42,6 @@ public abstract class ServiceModule extends Plugin {
         return this.context.getConfig(this.context.id());
     }
 
-    public MutsumiBot getBot() {
-        return this.context.getBot();
-    }
-
     public ServiceLocator getServiceLocator() {
         return this.context.getServiceLocator();
     }

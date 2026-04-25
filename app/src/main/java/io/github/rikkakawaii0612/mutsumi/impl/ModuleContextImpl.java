@@ -17,13 +17,11 @@ public final class ModuleContextImpl implements ModuleContext {
     private static final Logger LOGGER = LoggerFactory.getLogger("ModuleManager");
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final String id;
-    private final MutsumiBot bot;
     private final ServiceLocator serviceLocator;
     private final Map<String, JsonNode> configs = new ConcurrentHashMap<>();
 
-    public ModuleContextImpl(String id, MutsumiBot bot, ServiceLocator serviceLocator) {
+    public ModuleContextImpl(String id, ServiceLocator serviceLocator) {
         this.id = id;
-        this.bot = bot;
         this.serviceLocator = serviceLocator;
     }
 
@@ -45,11 +43,6 @@ public final class ModuleContextImpl implements ModuleContext {
     @Override
     public String id() {
         return this.id;
-    }
-
-    @Override
-    public MutsumiBot getBot() {
-        return this.bot;
     }
 
     @Override

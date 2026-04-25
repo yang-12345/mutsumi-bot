@@ -9,7 +9,5 @@ public interface ModuleContext {
 
     String id();
 
-    MutsumiBot getBot();
-
     ServiceLocator getServiceLocator();
 }

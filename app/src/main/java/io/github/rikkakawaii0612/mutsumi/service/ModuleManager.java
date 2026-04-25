@@ -84,7 +84,7 @@ public class ModuleManager extends DefaultPluginManager {
 
             try {
                 return (Plugin) clazz.getDeclaredConstructor(ModuleContext.class)
-                        .newInstance(new ModuleContextImpl(wrapper.getPluginId(), bot, serviceLocator));
+                        .newInstance(new ModuleContextImpl(wrapper.getPluginId(), serviceLocator));
             } catch (Exception e) {
                 LOGGER.error("Failed to create module {}", clazz.getSimpleName(), e);
                 return null;
