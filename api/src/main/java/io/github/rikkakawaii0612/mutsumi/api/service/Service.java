@@ -69,7 +69,7 @@ public abstract class Service implements ExtensionPoint {
         if (requests.isEmpty()) {
             return List.of();
         }
-        try (ExecutorService executor = Executors.newFixedThreadPool(10)) {
+        try (ExecutorService executor = Executors.newFixedThreadPool(30)) {
             List<CompletableFuture<ObjectData>> futures = requests.stream()
                     .map(request -> CompletableFuture.supplyAsync(() -> this.call(request), executor))
                     .toList();
