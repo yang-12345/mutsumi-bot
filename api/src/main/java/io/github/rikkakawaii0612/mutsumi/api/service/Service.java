@@ -58,12 +58,17 @@ public abstract class Service implements ExtensionPoint {
     }
 
     /**
-     * 异步调用多次服务, 在全部完成后返回所有结果.
+     * <p>异步调用多次服务, 在全部完成后返回所有结果.
      *
-     * @param requests 请求参数的集合
-     * @return 服务提供的数据集合
+     * <p>返回的数据会按请求列表的顺序存储, 因此依旧可能包含 {@link ObjectData#EMPTY}.
+     *
+     * @param requests 请求列表
+     * @return 服务返回的数据列表. 若无请求, 则返回空列表
      */
     public List<ObjectData> callAsync(Collection<ServiceRequest> requests) {
+        if (requests.isEmpty()) {
+            return List.of();
+        }
         try (ExecutorService executor = Executors.newFixedThreadPool(10)) {
             List<CompletableFuture<ObjectData>> futures = requests.stream()
                     .map(request -> CompletableFuture.supplyAsync(() -> this.call(request), executor))
