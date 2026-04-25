@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class LocalMutsumiBotImpl implements MutsumiBot {
     public static final Logger LOGGER = LoggerFactory.getLogger("MutsumiLocal");
@@ -37,13 +38,16 @@ public class LocalMutsumiBotImpl implements MutsumiBot {
         Message message = Message.text(str);
 
         List<MessageHandler> handlers = this.moduleManager.getExtensions(MessageHandler.class);
-        handlers.forEach(handler -> {
+
+        handlers.forEach(handler -> CompletableFuture.runAsync(() -> {
             try {
                 handler.handleMessage(this, group, owner, message);
             } catch (ServiceNotFoundException e) {
                 LOGGER.error("Service missing while handling message: ", e);
+            } catch (Exception e) {
+                LOGGER.error("Caught exception while handling message: ", e);
             }
-        });
+        }));
     }
 
     @Override

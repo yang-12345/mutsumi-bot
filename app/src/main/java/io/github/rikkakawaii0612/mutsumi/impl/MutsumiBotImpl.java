@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import top.mrxiaom.overflow.BotBuilder;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class MutsumiBotImpl implements MutsumiBot {
     public static final Logger LOGGER = LoggerFactory.getLogger("Mutsumi");
@@ -60,13 +61,17 @@ public class MutsumiBotImpl implements MutsumiBot {
         MessageChain message = builder.build();
 
         List<MessageHandler> handlers = this.moduleManager.getExtensions(MessageHandler.class);
-        handlers.forEach(handler -> {
+
+        // 异步处理消息
+        handlers.forEach(handler -> CompletableFuture.runAsync(() -> {
             try {
                 handler.handleMessage(this, group, sender, message);
             } catch (ServiceNotFoundException e) {
                 LOGGER.error("Service missing while handling message: ", e);
+            } catch (Exception e) {
+                LOGGER.error("Caught exception while handling message: ", e);
             }
-        });
+        }));
     }
 
     @Override
