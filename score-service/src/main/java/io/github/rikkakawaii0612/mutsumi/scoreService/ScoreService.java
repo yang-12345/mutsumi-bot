@@ -6,11 +6,11 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import io.github.rikkakawaii0612.mutsumi.api.handler.MessageHandler;
 import io.github.rikkakawaii0612.mutsumi.api.service.Service;
-import io.github.rikkakawaii0612.mutsumi.api.service.ServiceNotFoundException;
 import io.github.rikkakawaii0612.mutsumi.api.service.ServiceReference;
 import io.github.rikkakawaii0612.mutsumi.api.service.ServiceRequest;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ListObjectData;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
+import io.github.rikkakawaii0612.mutsumi.api.util.Pair;
 import org.pf4j.Extension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,7 @@ public class ScoreService extends Service implements MessageHandler {
 
         if (str.substring(1).startsWith("bp ")) {
             String param = str.substring(4);
-            ObjectData /*String*/ user = this.osuApiService.call(ServiceRequest.builder()
+            ObjectData /*User*/ user = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getUser")
                     .header("username", param)
                     .build());
@@ -84,22 +84,19 @@ public class ScoreService extends Service implements MessageHandler {
                             -> value.getDouble("pp"))
                     .reversed());
 
-            int limit = Math.min(200, list.size());
             double pp = 0.0D, multiplier = 1.0D;
-            for (int i = 0; i < limit; i++) {
-                pp += multiplier * list.get(i).getDouble("pp");
+            for (ObjectData objectData : list) {
+                pp += multiplier * objectData.getDouble("pp");
                 multiplier *= 0.95D;
             }
 
-            double bonusPp = 416.6667D * (1.0D - Math.exp(Math.log(0.995D) * Math.min(list.size(), 1000)));
-
+            // 计算 BonusPP 没有意义了
             StringBuilder builder = new StringBuilder(" 用户 " + username
                     + " 共找到 " + list.size()
-                    + "个有效成绩，总pp：" + (pp + bonusPp)
-                    + "；" + pp + " + " + bonusPp);
+                    + " 个有效成绩，总pp（不包括BonusPP）：" + pp);
 
-            int limit2 = Math.min(200, list.size());
-            for (int i = 0; i < limit2; i++) {
+            int limit = Math.min(10, list.size());
+            for (int i = 0; i < limit; i++) {
                 ObjectData /*Beatmapset*/ beatmapset = list.get(i).get("beatmapset");
                 builder.append("\n")
                         .append(beatmapset.getString("artist"))
@@ -115,7 +112,7 @@ public class ScoreService extends Service implements MessageHandler {
 
         if (str.substring(1).startsWith("bp7k ")) {
             String param = str.substring(6);
-            ObjectData /*String*/ user = this.osuApiService.call(ServiceRequest.builder()
+            ObjectData /*User*/ user = this.osuApiService.call(ServiceRequest.builder()
                     .header("service", "getUser")
                     .header("username", param)
                     .build());
@@ -133,21 +130,22 @@ public class ScoreService extends Service implements MessageHandler {
                     .append(Message.text(" 正在查找用户 " + username + " 的7k信息……" +
                             "\n这可能需要一些时间。")));
 
-            ObjectData /*List<BeatmapPlayCount>*/ beatmaps = this.osuApiService.call(ServiceRequest.builder()
-                    .header("service", "getAllPlayedBeatmaps")
-                    .header("id", id)
-                    .build());
-            List<? extends ObjectData> list = ListObjectData.readAsMutable(beatmaps);
+            List<? extends ObjectData /*BeatmapPlayCount*/>
+                    allPlayedBeatmaps = ListObjectData.readAsMutable(
+                            this.osuApiService.call(ServiceRequest.builder()
+                                    .header("service", "getAllPlayedBeatmaps")
+                                    .header("id", id)
+                                    .build()));
 
-            List<Map.Entry<ObjectData /*Beatmap*/, ObjectData /*Beatmapset*/>>
-                    beatmapsToBeatmapsets = new ArrayList<>();
+            // TODO: REMOVAL LOG
+            LOGGER.info("allPlayedBeatmaps size: {}", allPlayedBeatmaps.size());
 
-            for (Iterator<? extends ObjectData> iterator = list.iterator(); iterator.hasNext(); ) {
-                List<Map.Entry<ObjectData /*Beatmap*/, ObjectData /*Beatmapset*/>>
-                        beatmapsToPost = new ArrayList<>();
+            List<List<ObjectData /*Beatmap*/>> beatmapsToPost = new ArrayList<>();
+            for (Iterator<? extends ObjectData> iterator = allPlayedBeatmaps.iterator(); iterator.hasNext(); ) {
+                List<ObjectData /*Beatmap*/> beatmapList = new ArrayList<>();
 
                 // 收集50个谱面一组进行post
-                while (beatmapsToPost.size() < 50 && iterator.hasNext()) {
+                while (beatmapList.size() < 50 && iterator.hasNext()) {
                     ObjectData /*BeatmapPlayCount*/ beatmapPlayCount = iterator.next();
                     ObjectData /*Beatmap*/ beatmap = beatmapPlayCount.get("beatmap");
 
@@ -157,91 +155,105 @@ public class ScoreService extends Service implements MessageHandler {
                     String status = beatmap.get("rankStatus").asString();
                     if (!"ranked".equals(status)) continue;
 
-                    beatmapsToPost.add(new AbstractMap.SimpleEntry<>(beatmap, beatmapPlayCount.get("beatmapset")));
+                    beatmapList.add(beatmap);
                 }
 
-                List<ObjectData /*Long*/> ids = beatmapsToPost.stream()
-                        .map(o -> o.getKey().get("id"))
+                beatmapsToPost.add(beatmapList);
+            }
+
+            // 异步批量 post 获取谱面
+            List<ServiceRequest> requestsForBeatmaps = new ArrayList<>();
+
+            for (List<ObjectData /*Beatmap*/> list : beatmapsToPost) {
+                List<ObjectData /*Long*/> ids = list.stream()
+                        .map(o -> o.get("id"))
                         .toList();
-                ObjectData /*List<Beatmap>*/ objectData = osuApiService.call(ServiceRequest.builder()
+                requestsForBeatmaps.add(ServiceRequest.builder()
                         .header("service", "getBeatmaps")
                         .data("ids", ObjectData.of(ids))
                         .build());
+            }
 
-                List<? extends ObjectData /*Beatmap*/> beatmapsExtended = ListObjectData.read(objectData);
+            List<ObjectData /*List<Beatmap>*/> beatmapsExtended = this.osuApiService.callAsync(requestsForBeatmaps);
 
-                // 筛选7K谱面
-                for (int i = 0; i < beatmapsExtended.size(); i++) {
-                    ObjectData /*Beatmap*/ o = beatmapsExtended.get(i);
-                    if (o.getInt("cs") == 7) {
-                        beatmapsToBeatmapsets.add(new AbstractMap.SimpleEntry<>(o, beatmapsToPost.get(i).getValue()));
+            // 筛选7K谱面
+            List<ObjectData /*Beatmap*/> beatmaps = new ArrayList<>();
+            for (ObjectData /*List<Beatmap>*/ o : beatmapsExtended) {
+                for (ObjectData /*Beatmap*/ beatmap : ListObjectData.read(o)) {
+                    if (beatmap.getInt("cs") == 7) {
+                        beatmaps.add(beatmap);
                     }
                 }
             }
-            LOGGER.info("rankedManiaBeatmaps beatmap size: {}", beatmapsToBeatmapsets.size());
 
-            List<Map.Entry<ObjectData /*Beatmapset*/, ObjectData /*Score*/>>
-                    beatmapsetsToScores = new ArrayList<>();
-            for (int i = 0; i < beatmapsToBeatmapsets.size(); i++) {
-                Map.Entry<ObjectData /*Beatmap*/, ObjectData /*Beatmapset*/>
-                        entry = beatmapsToBeatmapsets.get(i);
-                if (i % 10 == 0) {
-                    LOGGER.info("Progress: {} / {}; {} 7K Beatmaps Found",
-                            i, beatmapsToBeatmapsets.size(), beatmapsetsToScores.size());
-                }
+            // TODO: REMOVAL LOG
+            LOGGER.info("beatmaps size: {}", beatmaps.size());
 
+            // 异步批量 post 获取谱面成绩列表
+            List<ServiceRequest> requestsForScores = beatmaps.stream()
+                    .map(beatmap -> ServiceRequest.builder()
+                            .header("service", "getUserBeatmapScores")
+                            .header("user", id)
+                            .header("beatmap", beatmap.getString("id"))
+                            .build())
+                    .toList();
+            List<ObjectData /*List<Score>*/> scores = this.osuApiService.callAsync(requestsForScores);
 
-                ObjectData /*List<Score>*/ scores = this.osuApiService.call(ServiceRequest.builder()
-                        .header("service", "getUserBeatmapScores")
-                        .header("user", id)
-                        .header("beatmap", entry.getKey().getString("id"))
-                        .build());
+            List<Pair<ObjectData /*Beatmap*/, ObjectData /*Score*/>>
+                    beatmapsToScores = new ArrayList<>();
 
-                List<? extends ObjectData> listx = ListObjectData.read(scores);
-
+            // 由于最好成绩不等于 pp 最高, 这里要比较出 pp 最高的成绩
+            for (int i = 0; i < scores.size(); i++) {
                 ObjectData /*Score*/ score = ObjectData.EMPTY;
-                for (ObjectData /*Score*/ scorex : listx) {
-                    if (score.isEmpty()
-                            || score.getDouble("pp") < scorex.getDouble("pp")) {
+                for (ObjectData /*Score*/ scorex : ListObjectData.read(scores.get(i))) {
+                    if (score.isEmpty() || score.getDouble("pp") < scorex.getDouble("pp")) {
                         score = scorex;
                     }
                 }
 
                 if (!score.isEmpty()) {
-                    beatmapsetsToScores.add(new AbstractMap.SimpleEntry<>(entry.getValue(), score));
+                    beatmapsToScores.add(new Pair<>(beatmaps.get(i), score));
                 }
             }
 
-            LOGGER.info("bestScores size: {}", beatmapsetsToScores.size());
+            // TODO: REMOVAL LOG
+            LOGGER.info("bestScores size: {}", beatmapsToScores.size());
 
-            beatmapsetsToScores.sort(Comparator
-                    .comparingDouble((Map.Entry<ObjectData, ObjectData> value)
-                            -> value.getValue().getDouble("pp"))
+            // 按 pp 从高到低排序
+            beatmapsToScores.sort(Comparator
+                    .comparingDouble((Pair<ObjectData /*Beatmap*/, ObjectData /*Score*/> value)
+                            -> value.right().getDouble("pp"))
                     .reversed());
 
+            // 计算 BP 的总 pp, 加权求和
             double pp = 0.0D, multiplier = 1.0D;
-            for (Map.Entry<ObjectData /*Beatmapset*/, ObjectData /*Score*/>
-                    beatmapsetsToScore : beatmapsetsToScores) {
-                pp += multiplier * beatmapsetsToScore.getValue().getDouble("pp");
+            for (Pair<ObjectData /*Beatmap*/, ObjectData /*Score*/>
+                    beatmapsetsToScore : beatmapsToScores) {
+                pp += multiplier * beatmapsetsToScore.right().getDouble("pp");
                 multiplier *= 0.95D;
             }
 
-            double bonusPp = 416.6667D * (1.0D - Math.exp(Math.log(0.995D) * Math.min(beatmapsetsToScores.size(), 1000)));
+            // 这公式对吗? 算出来总 pp 实际上没一个是对的, 有待研究
+            double bonusPp = 416.6667D * (1.0D - Math.exp(Math.log(0.995D) * Math.min(beatmapsToScores.size(), 1000)));
 
+            // 纯文本输出, 后面要改图像输出
             StringBuilder builder = new StringBuilder(" 用户 " + username
-                    + " 共找到 " + beatmapsetsToScores.size()
-                    + "个有效7k成绩，纯7k总pp：" + (pp + bonusPp)
-                    + "；" + pp + " + " + bonusPp);
+                    + " 共找到 " + beatmapsToScores.size()
+                    + " 个有效7k成绩，纯7k总pp：" + (pp + bonusPp)
+                    + " (" + pp + " + " + bonusPp + ")");
 
-            int limit2 = Math.min(200, beatmapsetsToScores.size());
-            for (int i = 0; i < limit2; i++) {
-                ObjectData /*Beatmapset*/ beatmapset = beatmapsetsToScores.get(i).getKey();
+            int limit = Math.min(10, beatmapsToScores.size());
+            for (int i = 0; i < limit; i++) {
+                ObjectData /*Beatmap*/ beatmap = beatmapsToScores.get(i).left();
+                ObjectData /*Beatmapset*/ beatmapset = beatmap.get("beatmapset");
                 builder.append("\n")
                         .append(beatmapset.getString("artist"))
                         .append(" - ")
                         .append(beatmapset.getString("title"))
-                        .append(": ")
-                        .append(beatmapsetsToScores.get(i).getValue().getDouble("pp"))
+                        .append(" (")
+                        .append(beatmap.getString("version"))
+                        .append("): ")
+                        .append(beatmapsToScores.get(i).right().getDouble("pp"))
                         .append("pp");
             }
 
