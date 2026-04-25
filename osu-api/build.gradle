@@ -14,11 +14,14 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // RateLimiter: Post Limit
-    implementation('io.github.resilience4j:resilience4j-ratelimiter:2.4.0') {
-        exclude group: 'org.slf4j', module: 'slf4j-api'
-    }
-    implementation 'io.vavr:vavr:0.10.4'
+//    // RateLimiter: Post Limit
+//    implementation('io.github.resilience4j:resilience4j-ratelimiter:2.4.0') {
+//        exclude group: 'org.slf4j', module: 'slf4j-api'
+//    }
+//    implementation 'io.vavr:vavr:0.10.4'
+
+    // Bucket4J: Post Limit
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.17.0'
 
     // PF4J: implementation of plugins
     compileOnly 'org.pf4j:pf4j:3.14.1'

@@ -3,8 +3,8 @@ package io.github.rikkakawaii0612.mutsumi.osuApi;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.resilience4j.ratelimiter.RateLimiter;
-import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ListObjectData;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.*;
 import io.github.rikkakawaii0612.mutsumi.api.service.Service;
@@ -28,13 +28,12 @@ public class OsuApiService extends Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
     private static final String API_BASE_URL = "https://osu.ppy.sh/api/v2/";
 
-
-    private final RateLimiter rateLimiter = RateLimiter.of("osu-api-limiter",
-            RateLimiterConfig.custom()
-                    .limitForPeriod(60)
-                    .limitRefreshPeriod(Duration.ofSeconds(30))
-                    .timeoutDuration(Duration.ofSeconds(60))
-                    .build());
+    private final Bucket bucket = Bucket.builder()
+            .addLimit(Bandwidth.builder()
+                    .capacity(60L)
+                    .refillGreedy(1L, Duration.ofSeconds(1L))
+                    .build())
+            .build();
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -45,7 +44,15 @@ public class OsuApiService extends Service {
 
     // you don't need to add prefix API_BASE_URL
     public Optional<JsonNode> post(String url) {
-        return RateLimiter.decorateSupplier(rateLimiter, () -> doPost(url)).get();
+        try {
+            if (this.bucket.asBlocking().tryConsume(1, Duration.ofSeconds(60L))) {
+                return doPost(url);
+            } else {
+                return Optional.empty();
+            }
+        } catch (InterruptedException e) {
+            return Optional.empty();
+        }
     }
 
     private Optional<JsonNode> doPost(String url) {
