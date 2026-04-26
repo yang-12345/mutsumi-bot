@@ -23,10 +23,6 @@ dependencies {
     // Bucket4J: Post Limit
     implementation 'com.bucket4j:bucket4j_jdk17-core:8.17.0'
 
-    // PF4J: implementation of plugins
-    compileOnly 'org.pf4j:pf4j:3.14.1'
-    annotationProcessor 'org.pf4j:pf4j:3.14.1'
-
     // SLF4J & Logback: Logger
     compileOnly 'org.slf4j:slf4j-api:2.0.16'
     compileOnly 'ch.qos.logback:logback-classic:1.5.13'

@@ -14,10 +14,6 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // PF4J: implementation of plugins
-    implementation 'org.pf4j:pf4j:3.14.1'
-    implementation 'org.ow2.asm:asm:9.8'
-
     // SLF4J & Logback: Logger
     implementation 'org.slf4j:slf4j-api:2.0.16'
     implementation 'ch.qos.logback:logback-classic:1.5.13'
