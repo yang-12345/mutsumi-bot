@@ -20,12 +20,6 @@ public class ServiceLocatorImpl implements ServiceLocator {
 
     @Override
     public ServiceReference getService(String id) {
-//        for (Service service : this.caches) {
-//            if (id.equals(service.getId())) {
-//                return Optional.of(service);
-//            }
-//        }
-
         return () -> {
             for (Service service : this.caches) {
                 if (id.equals(service.getId())) {
