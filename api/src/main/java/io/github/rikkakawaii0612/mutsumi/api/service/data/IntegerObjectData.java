@@ -33,6 +33,15 @@ public class IntegerObjectData implements ObjectData {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <T> T asObject(Class<T> type) {
+        if (type.isAssignableFrom(Integer.class)) {
+            return (T) Integer.valueOf(this.value);
+        }
+        return ObjectData.super.asObject(type);
+    }
+
+    @Override
     public ObjectData get(String key) {
         return EMPTY;
     }

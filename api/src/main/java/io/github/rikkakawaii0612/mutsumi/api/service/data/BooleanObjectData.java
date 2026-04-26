@@ -18,6 +18,15 @@ public class BooleanObjectData implements ObjectData {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <T> T asObject(Class<T> type) {
+        if (type.isAssignableFrom(Boolean.class)) {
+            return (T) Boolean.valueOf(this.value);
+        }
+        return ObjectData.super.asObject(type);
+    }
+
+    @Override
     public ObjectData get(String key) {
         return EMPTY;
     }

@@ -33,6 +33,15 @@ public class LongObjectData implements ObjectData {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <T> T asObject(Class<T> type) {
+        if (type.isAssignableFrom(Long.class)) {
+            return (T) Long.valueOf(this.value);
+        }
+        return ObjectData.super.asObject(type);
+    }
+
+    @Override
     public ObjectData get(String key) {
         return EMPTY;
     }

@@ -33,6 +33,15 @@ public class DoubleObjectData implements ObjectData {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <T> T asObject(Class<T> type) {
+        if (type.isAssignableFrom(Double.class)) {
+            return (T) Double.valueOf(this.value);
+        }
+        return ObjectData.super.asObject(type);
+    }
+
+    @Override
     public ObjectData get(String key) {
         return EMPTY;
     }

@@ -1,6 +1,7 @@
 package io.github.rikkakawaii0612.mutsumi.api.service.data;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ListObjectData implements ObjectData {
@@ -18,6 +19,15 @@ public class ListObjectData implements ObjectData {
     @Override
     public String toString() {
         return "List" + this.values.toString();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T asObject(Class<T> type) {
+        if (type.isAssignableFrom(Iterable.class)) {
+            return (T) this.values;
+        }
+        return ObjectData.super.asObject(type);
     }
 
     @Override

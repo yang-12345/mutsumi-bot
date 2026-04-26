@@ -12,8 +12,6 @@ import java.util.List;
  *
  * <p>原则上, 我们不希望不同插件模块之间引用对方的类. 因此, 我们使用 {@link ObjectData}
  * 接口作为门面来传输数据结构.
- *
- * <p> // TODO
  */
 public interface ObjectData {
     Logger LOGGER = LoggerFactory.getLogger("BaseApi");
@@ -86,6 +84,19 @@ public interface ObjectData {
         return "";
     }
 
+    default Object asObject() {
+        return this.asObject(Object.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    default <T> T asObject(Class<T> type) {
+        if (type.isAssignableFrom(String.class)) {
+            return (T) this.asString();
+        }
+        LOGGER.warn("Unsupported casting: {} to {}", this.getType(), type.getName());
+        return null;
+    }
+
     default ObjectData get(String key) {
         LOGGER.warn("Trying to get absent key '{}' of {}", key, this.getType());
         return EMPTY;
@@ -119,6 +130,14 @@ public interface ObjectData {
 
     default String getString(String key) {
         return this.get(key).asString();
+    }
+
+    default Object getObject(String key) {
+        return this.get(key).asObject();
+    }
+
+    default <T> T getObject(String key, Class<T> type) {
+        return this.get(key).asObject(type);
     }
 
     static ObjectData of(int value) {
