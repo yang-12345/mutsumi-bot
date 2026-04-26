@@ -202,10 +202,13 @@ public class ScoreService extends Service implements MessageHandler {
             List<Pair<ObjectData /*Beatmap*/, ObjectData /*Score*/>>
                     beatmapsToScores = new ArrayList<>();
 
-            // 由于最好成绩不等于 pp 最高, 这里要比较出 pp 最高的成绩
+            // 由于最好成绩不等于 PP 最高, 这里要比较出 PP 最高的成绩
+            // 同时计算 Bonus PP 所需要的成绩总数 N
+            int scoresCount = 0;
             for (int i = 0; i < scores.size(); i++) {
                 ObjectData /*Score*/ score = ObjectData.EMPTY;
                 for (ObjectData /*Score*/ scorex : ListObjectData.read(scores.get(i))) {
+                    scoresCount++;
                     if (score.isEmpty() || score.getDouble("pp") < scorex.getDouble("pp")) {
                         score = scorex;
                     }
@@ -219,13 +222,13 @@ public class ScoreService extends Service implements MessageHandler {
             // TODO: REMOVAL LOG
             LOGGER.info("bestScores size: {}", beatmapsToScores.size());
 
-            // 按 pp 从高到低排序
+            // 按 PP 从高到低排序
             beatmapsToScores.sort(Comparator
                     .comparingDouble((Pair<ObjectData /*Beatmap*/, ObjectData /*Score*/> value)
                             -> value.right().getDouble("pp"))
                     .reversed());
 
-            // 计算 BP 的总 pp, 加权求和
+            // 计算 BP 的总 PP, 加权求和
             double pp = 0.0D, multiplier = 1.0D;
             for (Pair<ObjectData /*Beatmap*/, ObjectData /*Score*/>
                     beatmapsetsToScore : beatmapsToScores) {
@@ -233,8 +236,7 @@ public class ScoreService extends Service implements MessageHandler {
                 multiplier *= 0.95D;
             }
 
-            // 这公式对吗? 算出来总 pp 实际上没一个是对的, 有待研究
-            double bonusPp = 416.6667D * (1.0D - Math.exp(Math.log(0.995D) * Math.min(beatmapsToScores.size(), 1000)));
+            double bonusPp = 416.6667D * (1.0D - Math.exp(Math.log(0.995D) * Math.min(scoresCount, 1000)));
 
             // 纯文本输出, 后面要改图像输出
             StringBuilder builder = new StringBuilder(" 用户 " + username
