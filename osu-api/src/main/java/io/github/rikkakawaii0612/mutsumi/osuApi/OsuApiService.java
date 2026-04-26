@@ -560,6 +560,6 @@ public class OsuApiService extends Service {
 
     @Override
     public String getId() {
-        return "osu-api";
+        return "osu-api-base";
     }
 }

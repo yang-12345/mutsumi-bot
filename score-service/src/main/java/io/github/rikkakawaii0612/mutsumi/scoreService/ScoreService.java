@@ -33,7 +33,7 @@ public class ScoreService extends Service implements MessageHandler {
 
     @Override
     public void load() {
-        this.osuApiService = this.getModule().getServiceLocator().getService("osu-api");
+        this.osuApiService = this.getModule().getServiceLocator().getService("osu-api-base");
     }
 
     @Override
