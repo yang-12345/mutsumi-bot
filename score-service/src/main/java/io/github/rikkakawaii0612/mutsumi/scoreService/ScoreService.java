@@ -236,6 +236,9 @@ public class ScoreService extends Service implements MessageHandler {
                 multiplier *= 0.95D;
             }
 
+            // 计算 Bonus PP = 416.6667 * (1 - 0.995 ^ N)
+            // 中文 osu wiki 给的就是一坨, 公式也错, 给的 N 也错
+            // 参见英文 osu wiki 对表现分的解释
             double bonusPp = 416.6667D * (1.0D - Math.exp(Math.log(0.995D) * Math.min(scoresCount, 1000)));
 
             // 纯文本输出, 后面要改图像输出
