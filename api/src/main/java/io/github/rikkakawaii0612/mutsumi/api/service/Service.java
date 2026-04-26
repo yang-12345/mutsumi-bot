@@ -34,26 +34,6 @@ public abstract class Service implements ExtensionPoint {
      */
     public abstract ObjectData call(ServiceRequest request);
 
-    public ObjectData call() {
-        return this.call(ServiceRequest.builder().build());
-    }
-
-    public ObjectData call(String header) {
-        return this.call(ServiceRequest.builder().header("value", header).build());
-    }
-
-    public ObjectData call(ObjectData data) {
-        return this.call(ServiceRequest.builder().data("value", data).build());
-    }
-
-    public ObjectData call(String header, ObjectData data) {
-        return this.call(ServiceRequest.builder().header("value", header).data("value", data).build());
-    }
-
-    public ObjectData call(ObjectData data, String header) {
-        return this.call(header, data);
-    }
-
     /**
      * <p>异步调用多次服务, 在全部完成后返回所有结果.
      *
