@@ -1,12 +1,9 @@
 package io.github.rikkakawaii0612.mutsumi.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceModule;
 import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
 import org.pf4j.ExtensionPoint;
 
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -65,7 +62,7 @@ public abstract class Service implements ExtensionPoint {
      * @param requests 请求列表
      * @return 服务返回的数据列表. 若无请求, 则返回空列表
      */
-    public List<ObjectData> callAsync(Collection<ServiceRequest> requests) {
+    public List<ObjectData> call(Collection<ServiceRequest> requests) {
         if (requests.isEmpty()) {
             return List.of();
         }

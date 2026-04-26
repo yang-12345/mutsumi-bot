@@ -12,7 +12,7 @@ public interface ServiceReference {
         return this.get().call(request);
     }
 
-    default List<ObjectData> callAsync(Collection<ServiceRequest> requests) {
-        return this.get().callAsync(requests);
+    default List<ObjectData> call(Collection<ServiceRequest> requests) {
+        return this.get().call(requests);
     }
 }

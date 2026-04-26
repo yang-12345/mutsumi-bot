@@ -174,7 +174,7 @@ public class ScoreService extends Service implements MessageHandler {
                         .build());
             }
 
-            List<ObjectData /*List<Beatmap>*/> beatmapsExtended = this.osuApiService.callAsync(requestsForBeatmaps);
+            List<ObjectData /*List<Beatmap>*/> beatmapsExtended = this.osuApiService.call(requestsForBeatmaps);
 
             // 筛选7K谱面
             List<ObjectData /*Beatmap*/> beatmaps = new ArrayList<>();
@@ -197,7 +197,7 @@ public class ScoreService extends Service implements MessageHandler {
                             .header("beatmap", beatmap.getString("id"))
                             .build())
                     .toList();
-            List<ObjectData /*List<Score>*/> scores = this.osuApiService.callAsync(requestsForScores);
+            List<ObjectData /*List<Score>*/> scores = this.osuApiService.call(requestsForScores);
 
             List<Pair<ObjectData /*Beatmap*/, ObjectData /*Score*/>>
                     beatmapsToScores = new ArrayList<>();
@@ -242,7 +242,7 @@ public class ScoreService extends Service implements MessageHandler {
                     + " 个有效7k成绩，纯7k总pp：" + (pp + bonusPp)
                     + " (" + pp + " + " + bonusPp + ")");
 
-            int limit = Math.min(10, beatmapsToScores.size());
+            int limit = Math.min(30, beatmapsToScores.size());
             for (int i = 0; i < limit; i++) {
                 ObjectData /*Beatmap*/ beatmap = beatmapsToScores.get(i).left();
                 ObjectData /*Beatmapset*/ beatmapset = beatmap.get("beatmapset");
