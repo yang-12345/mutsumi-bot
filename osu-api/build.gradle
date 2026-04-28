@@ -36,10 +36,10 @@ dependencies {
 jar {
     manifest {
         attributes(
-                'Plugin-Id': 'osu-api',
-                'Plugin-Class': 'io.github.rikkakawaii0612.mutsumi.osuApi.OsuApiModule',
-                'Plugin-Version': project.version,
-                'Plugin-Provider': 'RikkaKawaii0612'
+                'Service-Id': 'osu-api',
+                'Service-Class': 'io.github.rikkakawaii0612.mutsumi.osuApi.OsuApiModule',
+                'Service-Version': project.version,
+                'Service-Author': 'RikkaKawaii0612'
         )
     }
     //from(sourceSets.main.output)

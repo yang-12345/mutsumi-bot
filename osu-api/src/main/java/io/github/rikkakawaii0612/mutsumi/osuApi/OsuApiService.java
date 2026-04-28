@@ -5,12 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.rikkakawaii0612.mutsumi.api.service.data.ListObjectData;
+import io.github.rikkakawaii0612.mutsumi.api.Service;
+import io.github.rikkakawaii0612.mutsumi.api.ServiceContext;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.*;
-import io.github.rikkakawaii0612.mutsumi.api.service.Service;
-import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
-import io.github.rikkakawaii0612.mutsumi.api.service.ServiceRequest;
-import org.pf4j.Extension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,11 +23,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Extension
-public class OsuApiService extends Service {
+public class OsuApiService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
     private static final String API_BASE_URL = "https://osu.ppy.sh/api/v2/";
 
+    private String clientId;
+    private String clientSecret;
     // 长期限流, 最多存储 60 个令牌, 每秒补充 1 个
     private final Bucket longTerm = Bucket.builder()
             .addLimit(Bandwidth.builder()
@@ -51,9 +49,6 @@ public class OsuApiService extends Service {
     private String accessToken;
     private long tokenExpiredAt = Long.MIN_VALUE;
 
-    public OsuApiService() {
-    }
-
     // 不需要 API_BASE_URL 前缀
     private Optional<JsonNode> post(String url) {
         try {
@@ -70,6 +65,7 @@ public class OsuApiService extends Service {
     }
 
     private Optional<JsonNode> doPost(String url) {
+        this.checkAccessToken();
         if (this.accessToken == null) {
             return Optional.empty();
         }
@@ -100,211 +96,30 @@ public class OsuApiService extends Service {
         }
     }
 
-    @Override
-    public ObjectData call(ServiceRequest request) {
+    public Optional<User> getUser(String username) {
         this.checkAccessToken();
-        String service = request.getHeader("service");
-        switch (service) {
-            case "getUser" -> {
-                String id = request.getHeader("id");
-                if (!id.isBlank()) {
-                    return this.getUser(id);
-                }
-                String username = request.getHeader("username");
-                if (!username.isBlank()) {
-                    return this.getUser(username);
-                }
-                LOGGER.warn("No valid data 'id' or 'username' in request of 'getUser'");
-                return ObjectData.EMPTY;
-            }
-
-            case "getBestScores" -> {
-                String id = request.getHeader("id");
-                if (id.isBlank()) {
-                    LOGGER.warn("No data 'id' in request of 'getBestScores'");
-                    return ObjectData.EMPTY;
-                }
-                PlayMode mode = PlayMode.of(request.getHeader("mode"));
-                if (mode == null) {
-                    LOGGER.warn("No data 'mode' in request of 'getBestScores'");
-                    return ObjectData.EMPTY;
-                }
-                long l;
-                try {
-                    l = Long.parseLong(id);
-                } catch (NumberFormatException _) {
-                    LOGGER.warn("Data 'id' is not a number in request of 'getBestScores'");
-                    return ObjectData.EMPTY;
-                }
-                return this.getBestScores(l, mode);
-            }
-
-            case "getBeatmap" -> {
-                String id = request.getHeader("id");
-                if (id.isBlank()) {
-                    LOGGER.warn("No data 'id' in request of 'getBeatmap'");
-                    return ObjectData.EMPTY;
-                }
-                long l;
-                try {
-                    l = Long.parseLong(id);
-                } catch (NumberFormatException _) {
-                    LOGGER.warn("Data 'id' is not a number in request of 'getBeatmap'");
-                    return ObjectData.EMPTY;
-                }
-                return this.getBeatmap(l);
-            }
-
-            case "getBeatmaps" -> {
-                ObjectData data = request.getData("ids");
-                if (data.isEmpty()) {
-                    LOGGER.warn("No data 'ids' in request of 'getBeatmaps'");
-                    return ObjectData.EMPTY;
-                }
-                if (!data.is("base.List")) {
-                    LOGGER.warn("Data 'ids' is expected to be List, but found {} in request of 'getBeatmaps'",
-                            data.getType());
-                    return ObjectData.EMPTY;
-                }
-
-                List<? extends ObjectData> listObjectData = ListObjectData.read(data);
-                if (listObjectData.isEmpty()) {
-                    LOGGER.warn("List data 'ids' is empty in request of 'getBeatmaps'");
-                    return ObjectData.EMPTY;
-                }
-
-                long[] ids = new long[listObjectData.size()];
-                for (int i = 0; i < listObjectData.size(); i++) {
-                    ObjectData o = listObjectData.get(i);
-                    if (!o.is("base.Long")) {
-                        LOGGER.warn("Data 'ids' is expected to contain Long element," +
-                                        " but found {} in request of 'getBeatmaps'",
-                                data.getType());
-                        return ObjectData.EMPTY;
-                    }
-                    ids[i] = o.asLong();
-                }
-
-                return this.getBeatmaps(ids);
-            }
-
-            case "getScore" -> {
-                String id = request.getHeader("id");
-                if (id.isBlank()) {
-                    LOGGER.warn("No data 'id' in request of 'getScore'");
-                    return ObjectData.EMPTY;
-                }
-                long l;
-                try {
-                    l = Long.parseLong(id);
-                } catch (NumberFormatException _) {
-                    LOGGER.warn("Data 'id' is not a number in request of 'getScore'");
-                    return ObjectData.EMPTY;
-                }
-                return this.getScore(l);
-            }
-
-            case "getUserBeatmapScore" -> {
-                String user = request.getHeader("user");
-                if (user.isBlank()) {
-                    LOGGER.warn("No data 'user' in request of 'getUserBeatmapScore'");
-                    return ObjectData.EMPTY;
-                }
-                String beatmap = request.getHeader("beatmap");
-                if (beatmap.isBlank()) {
-                    LOGGER.warn("No data 'beatmap' in request of 'getUserBeatmapScore'");
-                    return ObjectData.EMPTY;
-                }
-
-                long userId, beatmapId;
-                try {
-                    userId = Long.parseLong(user);
-                } catch (NumberFormatException _) {
-                    LOGGER.warn("Data 'user' is not a number in request of 'getUserBeatmapScore'");
-                    return ObjectData.EMPTY;
-                }
-                try {
-                    beatmapId = Long.parseLong(beatmap);
-                } catch (NumberFormatException _) {
-                    LOGGER.warn("Data 'beatmap' is not a number in request of 'getUserBeatmapScore'");
-                    return ObjectData.EMPTY;
-                }
-                return this.getUserBeatmapScore(userId, beatmapId);
-            }
-
-            case "getUserBeatmapScores" -> {
-                String user = request.getHeader("user");
-                if (user.isBlank()) {
-                    LOGGER.warn("No data 'user' in request of 'getUserBeatmapScores'");
-                    return ObjectData.EMPTY;
-                }
-                String beatmap = request.getHeader("beatmap");
-                if (beatmap.isBlank()) {
-                    LOGGER.warn("No data 'beatmap' in request of 'getUserBeatmapScores'");
-                    return ObjectData.EMPTY;
-                }
-
-                long userId, beatmapId;
-                try {
-                    userId = Long.parseLong(user);
-                } catch (NumberFormatException _) {
-                    LOGGER.warn("Data 'user' is not a number in request of 'getUserBeatmapScores'");
-                    return ObjectData.EMPTY;
-                }
-                try {
-                    beatmapId = Long.parseLong(beatmap);
-                } catch (NumberFormatException _) {
-                    LOGGER.warn("Data 'beatmap' is not a number in request of 'getUserBeatmapScores'");
-                    return ObjectData.EMPTY;
-                }
-                return this.getUserBeatmapScores(userId, beatmapId);
-            }
-
-            case "getAllPlayedBeatmaps" -> {
-                String id = request.getHeader("id");
-                if (id.isBlank()) {
-                    LOGGER.warn("No data 'id' in request of 'getAllPlayedBeatmaps'");
-                    return ObjectData.EMPTY;
-                }
-                long l;
-                try {
-                    l = Long.parseLong(id);
-                } catch (NumberFormatException _) {
-                    LOGGER.warn("Data 'id' is not a number in request of 'getAllPlayedBeatmaps'");
-                    return ObjectData.EMPTY;
-                }
-                return this.getAllPlayedBeatmaps(l);
-            }
-
-            default -> {
-                LOGGER.warn("Trying to access unsupported service: {}", service);
-                return ObjectData.EMPTY;
-            }
-        }
-    }
-
-    private ObjectData getUser(String username) {
         if (this.accessToken == null) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         String str = URLEncoder.encode(username, StandardCharsets.UTF_8);
         Optional<JsonNode> optional = this.post("users/" + str);
         if (optional.isEmpty()) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         try {
-            return this.objectMapper.readValue(optional.get().toString(), User.class);
+            return Optional.of(this.objectMapper.readValue(optional.get().toString(), User.class));
         } catch (Exception e) {
             LOGGER.warn("Failed to resolve Score: ", e);
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
     }
 
-    private ObjectData getBestScores(long id, PlayMode mode) {
+    public Optional<List<Score>> getBestScores(long id, PlayMode mode) {
+        this.checkAccessToken();
         if (this.accessToken == null) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         String str = mode.getName();
@@ -315,14 +130,14 @@ public class OsuApiService extends Service {
                             id, str, i * 100));
 
             if (optional.isEmpty()) {
-                return ObjectData.EMPTY;
+                return Optional.empty();
             }
 
             JsonNode node = optional.get();
             if (!node.isArray()) {
                 LOGGER.warn("Found non-array response body while obtaining osu!user {}'s best scores in {} mode.",
                         id, str);
-                return ObjectData.EMPTY;
+                return Optional.empty();
             }
 
             node.forEach(list::add);
@@ -336,37 +151,39 @@ public class OsuApiService extends Service {
             }
         } catch (Exception e) {
             LOGGER.warn("Failed to resolve Score: ", e);
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
-        return ObjectData.of(scores);
+        return Optional.of(scores);
     }
 
-    private ObjectData getBeatmap(long id) {
+    public Optional<Beatmap> getBeatmap(long id) {
+        this.checkAccessToken();
         if (this.accessToken == null) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         Optional<JsonNode> optional = this.post("beatmaps/" + id);
         if (optional.isEmpty()) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         try {
-            return this.objectMapper.readValue(optional.get().toString(), Beatmap.class);
+            return Optional.of(this.objectMapper.readValue(optional.get().toString(), Beatmap.class));
         } catch (Exception e) {
             LOGGER.warn("Failed to resolve Beatmap: ", e);
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
     }
 
-    private ObjectData getBeatmaps(long[] ids) {
+    public Optional<List<Beatmap>> getBeatmaps(long[] ids) {
+        this.checkAccessToken();
         if (this.accessToken == null) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         if (ids.length == 0) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         StringBuilder builder = new StringBuilder();
@@ -377,77 +194,81 @@ public class OsuApiService extends Service {
         String url = "beatmaps?" + builder.substring(1);
         Optional<JsonNode> optional = this.post(url);
         if (optional.isEmpty()) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         try {
             List<Beatmap> list = this.objectMapper.readValue(optional.get().get("beatmaps").toString(),
                     new TypeReference<>() {});
-            return ObjectData.of(list);
+            return Optional.of(list);
         } catch (Exception e) {
             LOGGER.warn("Failed to resolve List<Beatmap>: ", e);
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
     }
 
-    private ObjectData getScore(long id) {
+    public Optional<Score> getScore(long id) {
+        this.checkAccessToken();
         if (this.accessToken == null) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         Optional<JsonNode> optional = this.post("scores/" + id);
         if (optional.isEmpty()) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         try {
-            return this.objectMapper.readValue(optional.get().toString(), Score.class);
+            return Optional.of(this.objectMapper.readValue(optional.get().toString(), Score.class));
         } catch (Exception e) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
     }
 
-    private ObjectData getUserBeatmapScore(long user, long beatmap) {
+    public Optional<BeatmapUserScore> getUserBeatmapScore(long user, long beatmap) {
+        this.checkAccessToken();
         if (this.accessToken == null) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         Optional<JsonNode> optional = this.post(String.format("beatmaps/%d/scores/users/%d", beatmap, user));
         if (optional.isEmpty()) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         try {
-            return this.objectMapper.readValue(optional.get().toString(), BeatmapUserScore.class);
+            return Optional.of(this.objectMapper.readValue(optional.get().toString(), BeatmapUserScore.class));
         } catch (Exception e) {
             LOGGER.warn("Failed to resolve BeatmapUserScore: ", e);
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
     }
 
-    private ObjectData getUserBeatmapScores(long user, long beatmap) {
+    public Optional<List<Score>> getUserBeatmapScores(long user, long beatmap) {
+        this.checkAccessToken();
         if (this.accessToken == null) {
-            return ListObjectData.EMPTY;
+            return Optional.empty();
         }
 
         Optional<JsonNode> optional = this.post(String.format("beatmaps/%d/scores/users/%d/all", beatmap, user));
         if (optional.isEmpty()) {
-            return ListObjectData.EMPTY;
+            return Optional.empty();
         }
 
         try {
             List<Score> list = this.objectMapper.readValue(optional.get().get("scores").toString(),
                     new TypeReference<>() {});
-            return ObjectData.of(list);
+            return Optional.of(list);
         } catch (Exception e) {
             LOGGER.warn("Failed to resolve List<BeatmapUserScore>: ", e);
-            return ListObjectData.EMPTY;
+            return Optional.empty();
         }
     }
 
-    private ObjectData getAllPlayedBeatmaps(long id) {
+    public Optional<List<BeatmapPlayCount>> getAllPlayedBeatmaps(long id) {
+        this.checkAccessToken();
         if (this.accessToken == null) {
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
         List<JsonNode> nodes = new ArrayList<>();
@@ -487,10 +308,10 @@ public class OsuApiService extends Service {
             }
         } catch (Exception e) {
             LOGGER.warn("Failed to resolve BeatmapPlayCount: ", e);
-            return ObjectData.EMPTY;
+            return Optional.empty();
         }
 
-        return ObjectData.of(beatmaps);
+        return Optional.of(beatmaps);
     }
 
     private void checkAccessToken() {
@@ -505,18 +326,12 @@ public class OsuApiService extends Service {
     }
 
     private String getAccessToken() {
-        JsonNode node = this.getModule().getConfig();
-        if (!node.has("clientId") || !node.has("clientSecret")) {
-            LOGGER.warn("Cannot read client id and client secret from config");
+        if (this.clientId == null || this.clientSecret == null) {
             return null;
         }
-
-        String clientId = node.get("clientId").asText();
-        String clientSecret = node.get("clientSecret").asText();
-
         String requestBody = String.format(
                 "{\"client_id\":\"%s\",\"client_secret\":\"%s\",\"grant_type\":\"client_credentials\",\"scope\":\"public\"}",
-                clientId, clientSecret);
+                this.clientId, this.clientSecret);
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -545,7 +360,15 @@ public class OsuApiService extends Service {
     }
 
     @Override
-    public void load() {
+    public void load(ServiceContext context) {
+        JsonNode node = context.config().getOrCreate("osu-api");
+        if (!node.has("clientId") || !node.has("clientSecret")) {
+            LOGGER.warn("Cannot read client id and client secret from config");
+            return;
+        }
+
+        this.clientId = node.get("clientId").asText();
+        this.clientSecret = node.get("clientSecret").asText();
         String str = this.getAccessToken();
         if (str != null) {
             this.tokenExpiredAt = System.nanoTime();
@@ -556,10 +379,5 @@ public class OsuApiService extends Service {
     @Override
     public void unload() {
         this.httpClient.shutdown();
-    }
-
-    @Override
-    public String getId() {
-        return "osu-api-base";
     }
 }
