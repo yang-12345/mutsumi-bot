@@ -22,16 +22,17 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
 
     compileOnly project(':api')
+    compileOnly project(':osu-api')
 }
 
 jar {
     manifest {
         attributes(
-                'Plugin-Id': 'score-service',
-                'Plugin-Class': 'io.github.rikkakawaii0612.mutsumi.scoreService.ScoreModule',
-                'Plugin-Version': project.version,
-                'Plugin-Dependencies': 'osu-api?',
-                'Plugin-Provider': 'RikkaKawaii0612'
+                'Service-Id': 'score-service',
+                'Service-Class': 'io.github.rikkakawaii0612.mutsumi.scoreService.ScoreModule',
+                'Service-Version': project.version,
+                'Service-Dependencies': 'osu-api?',
+                'Service-Provider': 'RikkaKawaii0612'
         )
     }
     from(sourceSets.main.output)
