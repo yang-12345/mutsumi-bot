@@ -4,14 +4,13 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Score implements ObjectData {
+public class Score {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
 
     @JsonProperty("id")
@@ -38,26 +37,5 @@ public class Score implements ObjectData {
     @Override
     public String toString() {
         return "osuApi.Score(id=" + this.id + ")";
-    }
-
-    @Override
-    public ObjectData get(String key) {
-        return switch (key) {
-            case "id" -> ObjectData.of(this.id);
-            case "beatmapId" -> ObjectData.of(this.beatmapId);
-            case "accuracy" -> ObjectData.of(this.accuracy);
-            case "pp" -> ObjectData.of(this.pp);
-            case "beatmap" -> ObjectData.of(this.beatmap);
-            case "beatmapset" -> ObjectData.of(this.beatmapset);
-            default -> {
-                LOGGER.warn("Trying to get unknown key '{}' of Score!", key);
-                yield ObjectData.EMPTY;
-            }
-        };
-    }
-
-    @Override
-    public String getType() {
-        return "osuApi.Score";
     }
 }

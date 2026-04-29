@@ -1,7 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi.osuApi.data;
 
 import com.fasterxml.jackson.annotation.*;
-import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
 import io.github.rikkakawaii0612.mutsumi.api.util.DuplicatableObjectIdResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +8,7 @@ import org.slf4j.LoggerFactory;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Beatmap implements ObjectData {
+public class Beatmap {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
 
     @JsonProperty("id")
@@ -112,50 +111,5 @@ public class Beatmap implements ObjectData {
     @Override
     public String toString() {
         return "osuApi.Beatmap(id=" + this.id + ")";
-    }
-
-    @Override
-    public ObjectData get(String key) {
-        return switch (key) {
-            case "id" -> ObjectData.of(this.id);
-            case "rating" -> ObjectData.of(this.rating);
-            case "playMode" -> ObjectData.of(this.playMode.getName());
-            case "version" -> ObjectData.of(this.version);
-            case "rankStatus" -> ObjectData.of(this.rankStatus.getName());
-            case "beatmapsetId" -> ObjectData.of(this.beatmapsetId);
-            case "beatmapset" -> ObjectData.of(this.beatmapset);
-            case "totalLength" -> ObjectData.of(this.totalLength);
-            case "userId" -> ObjectData.of(this.userId);
-            case "checksum" -> ObjectData.of(this.checksum);
-            case "currentUserPlaycount" -> ObjectData.of(this.currentUserPlaycount);
-            case "maxCombo" -> ObjectData.of(this.maxCombo);
-            case "failTimes" -> ObjectData.of(this.failTimes);
-            // Attributes of BeatmapExtended
-            case "od" -> ObjectData.of(this.od);
-            case "ar" -> ObjectData.of(this.ar);
-            case "cs" -> ObjectData.of(this.cs);
-            case "drain" -> ObjectData.of(this.drain);
-            case "bpm" -> ObjectData.of(this.bpm);
-            case "hitLength" -> ObjectData.of(this.hitLength);
-            case "scoreable" -> ObjectData.of(this.scoreable);
-            case "convert" -> ObjectData.of(this.convert);
-            case "countCircles" -> ObjectData.of(this.countCircles);
-            case "countSliders" -> ObjectData.of(this.countSliders);
-            case "countSpinners" -> ObjectData.of(this.countSpinners);
-            case "passCount" -> ObjectData.of(this.passCount);
-            case "owners" -> ObjectData.of(this.owners);
-            case "deletedAt" -> ObjectData.of(this.deletedAt);
-            case "lastUpdated" -> ObjectData.of(this.lastUpdated);
-            case "url" -> ObjectData.of(this.url);
-            default -> {
-                LOGGER.warn("Trying to get unknown key '{}' of Beatmap!", key);
-                yield ObjectData.EMPTY;
-            }
-        };
-    }
-
-    @Override
-    public String getType() {
-        return "osuApi.Beatmap";
     }
 }
