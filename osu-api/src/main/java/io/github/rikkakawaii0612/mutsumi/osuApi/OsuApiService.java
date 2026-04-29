@@ -177,12 +177,16 @@ public class OsuApiService implements Service {
     }
 
     public Optional<List<Beatmap>> getBeatmaps(long[] ids) {
+        return this.getBeatmaps(Arrays.stream(ids).boxed().toList());
+    }
+
+    public Optional<List<Beatmap>> getBeatmaps(Collection<Long> ids) {
         this.checkAccessToken();
         if (this.accessToken == null) {
             return Optional.empty();
         }
 
-        if (ids.length == 0) {
+        if (ids.isEmpty()) {
             return Optional.empty();
         }
 
