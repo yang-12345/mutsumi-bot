@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.rikkakawaii0612.mutsumi.api.Service;
-import io.github.rikkakawaii0612.mutsumi.api.ServiceContext;
+import io.github.rikkakawaii0612.mutsumi.api.ServiceLookup;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -373,10 +373,8 @@ public class OsuApiService implements Service {
     }
 
     @Override
-    public void load(ServiceContext context) {
-        instance = this;
-
-        JsonNode node = context.config().getOrCreate("osu-api");
+    public void load(String id, ServiceLookup lookup) {
+        JsonNode node = lookup.getService(id).config().getOrCreate(id);
         if (!node.has("clientId") || !node.has("clientSecret")) {
             LOGGER.warn("Cannot read client id and client secret from config");
             return;
