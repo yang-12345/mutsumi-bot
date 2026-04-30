@@ -32,7 +32,7 @@ jar {
                 'Service-Class': 'io.github.rikkakawaii0612.mutsumi.guessService.GuessService',
                 'Service-Version': project.version,
                 'Service-Dependencies': 'osu-api',
-                'Service-Provider': 'RikkaKawaii0612'
+                'Service-Author': 'RikkaKawaii0612'
         )
     }
     from(sourceSets.main.output)
