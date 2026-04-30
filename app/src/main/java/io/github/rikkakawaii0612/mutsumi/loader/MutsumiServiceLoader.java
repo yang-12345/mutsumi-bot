@@ -11,14 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -175,12 +174,28 @@ public class MutsumiServiceLoader {
             LOGGER.warn("Some services are not unloaded successfully. Be aware!");
         }
 
+
+        ReferenceQueue<ClassLoader> queue = new ReferenceQueue<>();
+        WeakReference<ClassLoader> weakReference = new WeakReference<>(this.classLoader, queue);
+
         try {
             this.classLoader.close();
         } catch (IOException e) {
             LOGGER.error("Failed to close service class loader, which may occur memory leak: ", e);
         } finally {
             this.classLoader = null;
+        }
+
+        // 检查类加载器是否在一秒内被回收, 报告可能的内存泄漏
+        System.gc();
+        try {
+            Thread.sleep(100L);
+        } catch (InterruptedException e) {
+            LOGGER.error("Thread was interrupted while checking GC of service class loader", e);
+        } finally {
+            if (Objects.equals(queue.poll(), weakReference)) {
+                LOGGER.warn("Service class loader seems to be not garbage-collected, which may occur memory leak!");
+            }
         }
     }
 
