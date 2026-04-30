@@ -2,7 +2,7 @@ package io.github.rikkakawaii0612.mutsumi.loader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.rikkakawaii0612.mutsumi.MutsumiImpl;
+import io.github.rikkakawaii0612.mutsumi.impl.MutsumiImpl;
 import io.github.rikkakawaii0612.mutsumi.api.Config;
 import io.github.rikkakawaii0612.mutsumi.api.Service;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceLookup;
@@ -102,7 +102,7 @@ public class MutsumiServiceLoader {
                     Class<?> clazz = this.classLoader.loadClass(mainClass);
                     Service service = (Service) clazz.getConstructor().newInstance();
                     this.idsToServices.put(id, new ServiceLookup.Wrapper(
-                            service, id, version, author, dependencies, this.configImpl
+                            service, id, version, author, dependencies
                     ));
                 }
             }
@@ -128,7 +128,7 @@ public class MutsumiServiceLoader {
                 dependencies.put(wrapper, list);
             }
 
-            ServiceLookup lookup = new ServiceLookup(this.mutsumi, this.idsToServices);
+            ServiceLookup lookup = new ServiceLookup(this.mutsumi, this.idsToServices, this.configImpl);
 
             // 按依赖关系进行拓扑排序
             List<ServiceLookup.Wrapper> sorted = MathUtils.topologicalSort(this.idsToServices.values(), dependencies);

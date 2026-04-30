@@ -1,27 +1,36 @@
 package io.github.rikkakawaii0612.mutsumi;
 
-import io.github.rikkakawaii0612.mutsumi.impl.LocalMutsumiBotImpl;
-import io.github.rikkakawaii0612.mutsumi.service.ModuleManager;
-import org.pf4j.PluginState;
-import org.pf4j.PluginWrapper;
+import io.github.rikkakawaii0612.mutsumi.impl.MutsumiImpl;
+import io.github.rikkakawaii0612.mutsumi.util.BotLogger;
+import net.mamoe.mirai.utils.BotConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.mrxiaom.overflow.BotBuilder;
 
-import java.nio.file.Paths;
 import java.util.Scanner;
 
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger("Console");
-    private static ModuleManager moduleManager;
+    private static MutsumiImpl mutsumi;
 
     static void main() {
-        moduleManager = new ModuleManager();
+        mutsumi = new MutsumiImpl();
 
         try {
-            moduleManager.loadModules();
+            mutsumi.getServiceLoader().load();
         } catch (Throwable throwable) {
             LOGGER.error(throwable.getMessage(), throwable);
         }
+
+        mutsumi.runBots();
+
+        //TODO: 多账号登录
+        BotBuilder.reversed(8080)
+                .token("")
+                .withBotConfiguration(() -> new BotConfiguration() {{
+                    this.setBotLoggerSupplier(_ -> new BotLogger());
+                }})
+                .connect();
 
         // Everlasting Eternity >w<
         Thread consoleThread = new Thread(Main::onConsoleThread);
@@ -41,50 +50,14 @@ public class Main {
             try {
                 String command = scanner.nextLine();
                 if (!command.isEmpty()) {
-                    if (command.startsWith("unload ")) {
-                        String id = command.substring(7);
-                        PluginWrapper wrapper = moduleManager.getPlugin(id);
-                        if (wrapper != null && wrapper.getPluginState() == PluginState.STARTED) {
-                            moduleManager.stopPlugin(id);
-                            moduleManager.unloadPlugin(id);
-                            LOGGER.info("Unloaded Service Module '{}'.", id);
-                        } else {
-                            LOGGER.info("Cannot find Service Module '{}'.", id);
-                        }
-                        continue;
-                    }
-
-                    if (command.startsWith("load ")) {
-                        String path = command.substring(5);
-                        try {
-                            String id = moduleManager.loadPlugin(Paths.get("modules", path));
-                            moduleManager.startPlugin(id);
-                            LOGGER.info("Loaded Service Module '{}'.", id);
-                        } catch (Exception e) {
-                            LOGGER.info("Failed to load Service Module '{}': ", path, e);
-                        }
-                        continue;
-                    }
-
-                    if ("reloadAll".equals(command)) {
-                        moduleManager.stopPlugins();
-                        moduleManager.unloadPlugins();
-                        moduleManager.loadModules();
-                        continue;
-                    }
-
-                    if ("unloadAll".equals(command)) {
-                        moduleManager.stopPlugins();
-                        moduleManager.unloadPlugins();
+                    if ("reload".equalsIgnoreCase(command)) {
+                        mutsumi.getServiceLoader().unload();
+                        mutsumi.getServiceLoader().load();
                         continue;
                     }
 
                     if (command.startsWith("send ")) {
-                        if (moduleManager.getBot() instanceof LocalMutsumiBotImpl bot) {
-                            bot.receiveMessage(command.substring(5));
-                        } else {
-                            LOGGER.info("No Local Mutsumi Bot present.");
-                        }
+                        mutsumi.getBotBus().sendToLocalBot(command.substring(5));
                         continue;
                     }
 
