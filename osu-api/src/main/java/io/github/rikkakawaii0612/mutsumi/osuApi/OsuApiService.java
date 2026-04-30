@@ -27,15 +27,6 @@ public class OsuApiService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
     private static final String API_BASE_URL = "https://osu.ppy.sh/api/v2/";
 
-    private static OsuApiService instance;
-
-    public static OsuApiService getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("Service has not loaded yet");
-        }
-        return instance;
-    }
-
     private String clientId;
     private String clientSecret;
     // 长期限流, 最多存储 60 个令牌, 每秒补充 1 个
