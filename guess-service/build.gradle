@@ -28,7 +28,7 @@ dependencies {
 jar {
     manifest {
         attributes(
-                'Service-Id': 'score-service',
+                'Service-Id': 'guess-service',
                 'Service-Class': 'io.github.rikkakawaii0612.mutsumi.guessService.GuessService',
                 'Service-Version': project.version,
                 'Service-Dependencies': 'osu-api',
