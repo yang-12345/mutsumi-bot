@@ -166,6 +166,14 @@ public class MutsumiServiceLoader {
         } else {
             LOGGER.warn("Some services are not unloaded successfully. Be aware!");
         }
+
+        try {
+            this.classLoader.close();
+        } catch (IOException e) {
+            LOGGER.error("Failed to close service class loader, which may occur memory leak: ", e);
+        } finally {
+            this.classLoader = null;
+        }
     }
 
     public void loadConfigs() {
