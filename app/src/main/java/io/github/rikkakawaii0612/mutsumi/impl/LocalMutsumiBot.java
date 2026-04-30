@@ -4,7 +4,6 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.Group;
 import io.github.rikkakawaii0612.mutsumi.api.contact.Member;
 import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
-import io.github.rikkakawaii0612.mutsumi.api.service.ServiceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
