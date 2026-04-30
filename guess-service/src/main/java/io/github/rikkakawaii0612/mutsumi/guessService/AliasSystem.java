@@ -1,27 +1,23 @@
 package io.github.rikkakawaii0612.mutsumi.guessService;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.*;
 
 public class AliasSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger("GuessService");
-    private final Map<String, Set<String>> aliases = new HashMap<>();
+    private static final Map<String, Set<String>> ALIASES = new HashMap<>();
 
-    public Set<String> getAliases(String title) {
-        if (this.aliases.containsKey(title)) {
-            return this.aliases.get(title);
+    public static Set<String> getAliases(String title) {
+        if (ALIASES.containsKey(title)) {
+            return ALIASES.get(title);
         }
         return Set.of();
     }
 
-    public void loadConfig(JsonNode root) {
+    public static void loadConfig(JsonNode root) {
         Map<String, Set<String>> map = new HashMap<>();
         int songsWithAliases = 0, totalAliases = 0;
         try {
@@ -44,8 +40,8 @@ public class AliasSystem {
                 }
                 map.put(key, set);
             }
-            this.aliases.clear();
-            this.aliases.putAll(map);
+            ALIASES.clear();
+            ALIASES.putAll(map);
             LOGGER.info("Loaded {} aliases of {} songs", totalAliases, songsWithAliases);
         } catch (Exception e) {
             LOGGER.error("Failed to load alias config: ", e);

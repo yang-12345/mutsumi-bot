@@ -1,6 +1,8 @@
 package io.github.rikkakawaii0612.mutsumi.guessService;
 
-import io.github.rikkakawaii0612.mutsumi.api.service.data.ObjectData;
+import io.github.rikkakawaii0612.mutsumi.osuApi.data.Beatmap;
+import io.github.rikkakawaii0612.mutsumi.osuApi.data.Beatmapset;
+import io.github.rikkakawaii0612.mutsumi.osuApi.data.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,8 +11,8 @@ import java.util.*;
 public class GameInfo {
     private static final Logger LOGGER = LoggerFactory.getLogger("GuessService");
 
-    private final ObjectData/*User*/ user;
-    private final List<ObjectData/*Beatmap*/> beatmaps;
+    private final User user;
+    private final List<Beatmap> beatmaps;
     private final List<Character> openedCharacters;
     private final List<Character> implicitOpenedCharacters;
     private final List<Boolean> decrypted;
@@ -18,8 +20,8 @@ public class GameInfo {
     private final boolean unicode;
     private final String mode;
 
-    public GameInfo(ObjectData user,
-                    List<ObjectData> beatmaps,
+    public GameInfo(User user,
+                    List<Beatmap> beatmaps,
                     String mode,
                     boolean showArtist,
                     boolean unicode) {
@@ -36,7 +38,7 @@ public class GameInfo {
         this.mode = mode;
     }
 
-    public ObjectData getUser() {
+    public User getUser() {
         return this.user;
     }
 
@@ -88,11 +90,11 @@ public class GameInfo {
         return true;
     }
 
-    public ObjectData getBeatmap(int index) {
+    public Beatmap getBeatmap(int index) {
         return this.beatmaps.get(index);
     }
 
-    public List<ObjectData> getBeatmaps() {
+    public List<Beatmap> getBeatmaps() {
         return this.beatmaps;
     }
 
@@ -120,13 +122,11 @@ public class GameInfo {
             return false;
         }
 
-        GuessModule module = GuessModule.getInstance();
-
-        ObjectData beatmap = this.beatmaps.get(index);
-        String title = beatmap.getString("title");
-        Set<String> set = new HashSet<>(module.aliasSystem.getAliases(title));
+        Beatmap beatmap = this.beatmaps.get(index);
+        String title = beatmap.beatmapset.title;
+        Set<String> set = new HashSet<>(AliasSystem.getAliases(title));
         set.add(title);
-        set.add(beatmap.getString("titleUnicode"));
+        set.add(beatmap.beatmapset.titleUnicode);
         for (String s : set) {
             if (matches(s, text)) {
                 this.decrypted.set(index, true);
@@ -159,9 +159,9 @@ public class GameInfo {
     public List<String> query() {
         List<String> list = new ArrayList<>();
         for (int i = 0; i < this.beatmaps.size(); i++) {
-            ObjectData/*Beatmap*/ beatmap = this.beatmaps.get(i);
-            String artist = beatmap.getString(this.unicode ? "artistUnicode" : "artist");
-            String title = beatmap.getString(this.unicode ? "titleUnicode" : "title");
+            Beatmapset beatmapset = this.beatmaps.get(i).beatmapset;
+            String artist = this.unicode ? beatmapset.artistUnicode : beatmapset.artist;
+            String title = this.unicode ? beatmapset.titleUnicode : beatmapset.title;
             if (this.decrypted.get(i)) {
                 list.add(artist + " - " + title);
             } else {
