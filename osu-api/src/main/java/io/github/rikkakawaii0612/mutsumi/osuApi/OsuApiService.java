@@ -374,7 +374,7 @@ public class OsuApiService implements Service {
 
     @Override
     public void load(String id, ServiceLookup lookup) {
-        JsonNode node = lookup.getService(id).config().getOrCreate(id);
+        JsonNode node = lookup.getConfig().getOrCreate(id);
         if (!node.has("clientId") || !node.has("clientSecret")) {
             LOGGER.warn("Cannot read client id and client secret from config");
             return;
