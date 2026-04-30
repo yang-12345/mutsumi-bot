@@ -29,10 +29,10 @@ public class OsuApiService implements Service {
 
     private String clientId;
     private String clientSecret;
-    // 长期限流, 最多存储 60 个令牌, 每秒补充 1 个
+    // 长期限流, 最多存储 120 个令牌, 每秒补充 1 个, 允许一定量的批量处理
     private final Bucket longTerm = Bucket.builder()
             .addLimit(Bandwidth.builder()
-                    .capacity(60L)
+                    .capacity(120L)
                     .refillGreedy(1L, Duration.ofSeconds(1L))
                     .build())
             .build();
