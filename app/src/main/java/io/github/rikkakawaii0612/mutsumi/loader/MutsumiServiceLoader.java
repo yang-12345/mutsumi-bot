@@ -176,6 +176,7 @@ public class MutsumiServiceLoader {
     }
 
     public void loadConfigs() {
+        this.configs.clear();
         try {
             File configsDir = new File("configs");
             if (!configsDir.isDirectory()) {
@@ -187,7 +188,7 @@ public class MutsumiServiceLoader {
                 for (File file : files) {
                     String name = file.getName();
                     try (InputStream is = new FileInputStream(file)) {
-                        this.configs.put(name, OBJECT_MAPPER.readTree(is));
+                        this.configs.put(name.substring(0, name.length() - 5), OBJECT_MAPPER.readTree(is));
                     } catch (Exception e) {
                         LOGGER.warn("Cannot read config '{}': ", name, e);
                     }
