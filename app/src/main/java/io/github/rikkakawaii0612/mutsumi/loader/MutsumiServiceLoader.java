@@ -82,11 +82,20 @@ public class MutsumiServiceLoader {
                     String dependenciesField = attrs.getValue("Service-Dependencies");
                     String mainClass = attrs.getValue("Service-Class");
                     if (id == null) {
-                        LOGGER.warn("Found service that doesn't have an id");
+                        LOGGER.warn("Found service that doesn't have an id. Ignored");
                         continue;
                     }
-                    if (version == null || author == null || mainClass == null) {
-                        LOGGER.warn("Service {} doesn't have all of these fields: version, author, mainClass. Ignored.", id);
+                    if (version == null) {
+                        LOGGER.warn("Service {} doesn't have field 'Service-Version'. Ignored", id);
+                        continue;
+                    }
+                    if (author == null) {
+                        LOGGER.warn("Service {} doesn't have field 'Service-Author'. Ignored", id);
+                        continue;
+                    }
+                    if (mainClass == null) {
+                        LOGGER.warn("Service {} doesn't have field 'Service-Class'. Ignored", id);
+                        continue;
                     }
 
                     List<String> dependencies = new ArrayList<>();
