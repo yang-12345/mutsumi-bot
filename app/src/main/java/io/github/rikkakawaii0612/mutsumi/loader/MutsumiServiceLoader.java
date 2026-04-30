@@ -86,8 +86,7 @@ public class MutsumiServiceLoader {
                         continue;
                     }
                     if (version == null || author == null || mainClass == null) {
-                        throw new IllegalArgumentException("Service " + id + " doesn't have all of these fields:" +
-                                " version, author, mainClass");
+                        LOGGER.warn("Service {} doesn't have all of these fields: version, author, mainClass. Ignored.", id);
                     }
 
                     List<String> dependencies = new ArrayList<>();
