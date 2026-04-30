@@ -56,6 +56,11 @@ public class Main {
                         continue;
                     }
 
+                    if ("unload".equalsIgnoreCase(command)) {
+                        mutsumi.getServiceLoader().unload();
+                        continue;
+                    }
+
                     if (command.startsWith("send ")) {
                         mutsumi.getBotBus().sendToLocalBot(command.substring(5));
                         continue;
