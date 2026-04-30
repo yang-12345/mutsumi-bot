@@ -37,7 +37,7 @@ jar {
     manifest {
         attributes(
                 'Service-Id': 'osu-api',
-                'Service-Class': 'io.github.rikkakawaii0612.mutsumi.osuApi.OsuApiModule',
+                'Service-Class': 'io.github.rikkakawaii0612.mutsumi.osuApi.OsuApiService',
                 'Service-Version': project.version,
                 'Service-Author': 'RikkaKawaii0612'
         )

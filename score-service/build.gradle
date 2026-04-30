@@ -29,9 +29,9 @@ jar {
     manifest {
         attributes(
                 'Service-Id': 'score-service',
-                'Service-Class': 'io.github.rikkakawaii0612.mutsumi.scoreService.ScoreModule',
+                'Service-Class': 'io.github.rikkakawaii0612.mutsumi.scoreService.ScoreService',
                 'Service-Version': project.version,
-                'Service-Dependencies': 'osu-api?',
+                'Service-Dependencies': 'osu-api',
                 'Service-Provider': 'RikkaKawaii0612'
         )
     }

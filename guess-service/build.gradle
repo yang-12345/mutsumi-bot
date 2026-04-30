@@ -28,11 +28,11 @@ dependencies {
 jar {
     manifest {
         attributes(
-                'Plugin-Id': 'guess-service',
-                'Plugin-Class': 'io.github.rikkakawaii0612.mutsumi.guessService.GuessModule',
-                'Plugin-Version': project.version,
-                'Plugin-Dependencies': 'osu-api?',
-                'Plugin-Provider': 'RikkaKawaii0612'
+                'Service-Id': 'score-service',
+                'Service-Class': 'io.github.rikkakawaii0612.mutsumi.guessService.GuessService',
+                'Service-Version': project.version,
+                'Service-Dependencies': 'osu-api',
+                'Service-Provider': 'RikkaKawaii0612'
         )
     }
     from(sourceSets.main.output)

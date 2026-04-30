@@ -25,12 +25,12 @@ public class Main {
         mutsumi.runBots();
 
         //TODO: 多账号登录
-        BotBuilder.reversed(8080)
-                .token("")
-                .withBotConfiguration(() -> new BotConfiguration() {{
-                    this.setBotLoggerSupplier(_ -> new BotLogger());
-                }})
-                .connect();
+//        BotBuilder.reversed(8080)
+//                .token("")
+//                .withBotConfiguration(() -> new BotConfiguration() {{
+//                    this.setBotLoggerSupplier(_ -> new BotLogger());
+//                }})
+//                .connect();
 
         // Everlasting Eternity >w<
         Thread consoleThread = new Thread(Main::onConsoleThread);
