@@ -34,7 +34,7 @@ public class CommandMatcher {
             int index = pair.right();
             Optional<?> optional = node.get(command.substring(i, index));
             optional.ifPresent(o -> result.put(node.getName(), o));
-            i += index;
+            i = index;
         }
 
         return new Result(result);
@@ -48,7 +48,7 @@ public class CommandMatcher {
         }
 
         int index = -1;
-        for (int i = 0; i < command.length(); i++) {
+        for (int i = 0; i <= command.length(); i++) {
             if (node.matches(command.substring(0, i))) {
                 index = i;
             }
@@ -84,11 +84,20 @@ public class CommandMatcher {
         }
 
         @SuppressWarnings("unchecked")
-        public <T> Optional<T> getValue(String key, Class<T> type) {
+        public <T> T getValue(String key, Class<T> type) {
             if (this.params == null) {
                 throw new NoSuchElementException("No command is matched");
             }
-            return Optional.ofNullable((T) this.params.get(key));
+            try {
+                return (T) this.params.get(key);
+            } catch (ClassCastException _) {
+                return null;
+            }
+        }
+
+        public <T> T getOrDefault(String key, Class<T> type, T defaultVar) {
+            T value = this.getValue(key, type);
+            return value != null ? value : defaultVar;
         }
     }
 }
