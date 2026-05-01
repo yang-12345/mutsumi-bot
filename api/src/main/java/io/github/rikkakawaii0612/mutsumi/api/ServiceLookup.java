@@ -22,6 +22,10 @@ public final class ServiceLookup {
         return this.services.get(id);
     }
 
+    public boolean hasService(String id) {
+        return this.services.containsKey(id);
+    }
+
     public Config getConfig() {
         return this.config;
     }
