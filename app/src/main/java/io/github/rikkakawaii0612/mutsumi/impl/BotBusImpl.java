@@ -68,18 +68,8 @@ public class BotBusImpl implements BotBus {
             Group group = mutsumiBot.getGroup(groupId);
             long sender = event.getSender().getId();
             Message message = convertMessage(event.getMessage());
-            synchronized (this.lock) {
 
-                this.messageHandlers.forEach(handler -> {
-                    try {
-                        // 异步处理消息
-                        CompletableFuture.runAsync(() ->
-                                handler.handleMessage(mutsumiBot, group, () -> sender, message));
-                    } catch (Exception e) {
-                        LOGGER.error("Caught exception while handling message: ", e);
-                    }
-                });
-            }
+            this.handleMessage(mutsumiBot, group, () -> sender, message);
         });
     }
 
@@ -114,15 +104,20 @@ public class BotBusImpl implements BotBus {
         Member member = this.localBot.getOwner();
         Message message = Message.text(text);
 
+        this.handleMessage(this.localBot, group, member, message);
+    }
+
+    private void handleMessage(MutsumiBot mutsumiBot, Group group, Member sender, Message message) {
         synchronized (this.lock) {
             this.messageHandlers.forEach(handler -> {
-                try {
-                    // 异步处理消息
-                    CompletableFuture.runAsync(() ->
-                            handler.handleMessage(this.localBot, group, member, message));
-                } catch (Exception e) {
-                    LOGGER.error("Caught exception while handling message: ", e);
-                }
+                // 异步处理消息
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        handler.handleMessage(mutsumiBot, group, sender, message);
+                    } catch (Exception e) {
+                        LOGGER.error("Caught exception while handling message: ", e);
+                    }
+                });
             });
         }
     }
