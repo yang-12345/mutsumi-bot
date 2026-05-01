@@ -35,7 +35,6 @@ public class MutsumiServiceLoader {
     public void load() {
         synchronized (this.lock) {
             if (this.classLoader != null) {
-                LOGGER.warn("Trying to load service loader that has been loaded");
                 this.unload();
             }
 
@@ -160,7 +159,6 @@ public class MutsumiServiceLoader {
     public void unload() {
         synchronized (this.lock) {
             if (this.classLoader == null) {
-                LOGGER.warn("Trying to unload service loader that is not loaded");
                 return;
             }
 
