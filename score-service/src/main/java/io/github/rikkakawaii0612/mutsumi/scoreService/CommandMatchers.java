@@ -14,7 +14,8 @@ public class CommandMatchers {
                 stringVarWithoutSpace("user").complete()
         );
         BP = new CommandMatcher(literalIgnoreCase("bp")
-                .addNode(OsuCommandNodes.nodeBuilderPlayMode("playMode").addNode(node))
+                .addNode(OsuCommandNodes.nodeBuilderPlayMode("playMode")
+                        .addNode(node))
                 .addNode(node)
                 .build());
     }
