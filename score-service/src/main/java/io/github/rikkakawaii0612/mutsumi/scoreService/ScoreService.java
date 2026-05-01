@@ -8,6 +8,7 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import io.github.rikkakawaii0612.mutsumi.api.util.MutsumiUtils;
 import io.github.rikkakawaii0612.mutsumi.api.util.Pair;
+import io.github.rikkakawaii0612.mutsumi.api.util.command.CommandMatcher;
 import io.github.rikkakawaii0612.mutsumi.osuApi.OsuApiService;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.*;
 import org.slf4j.Logger;
@@ -41,13 +42,15 @@ public class ScoreService implements Service {
             return;
         }
 
-        if (str.substring(1).startsWith("bp ")) {
-            String param = str.substring(4);
-            Optional<User> optional = this.osuApiService.getUser(param);
+        //todo: 指令跑不起来
+        CommandMatcher.Result bp = CommandMatchers.BP.matches(str.substring(1));
+        if (bp.doesMatches()) {
+            String paramUser = bp.getValue("user", String.class);
+            Optional<User> optional = this.osuApiService.getUser(bp.getValue("user", String.class));
 
             if (optional.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
-                        .append(Message.text(" 没有找到用户名或ID为 " + param + " 的用户。")));
+                        .append(Message.text(" 没有找到用户名或ID为 " + paramUser + " 的用户。")));
                 return;
             }
 
@@ -60,7 +63,8 @@ public class ScoreService implements Service {
                     .append(Message.text(" 正在查找用户 " + username + " 的bp200信息……" +
                             "\n这可能需要一些时间。")));
 
-            Optional<List<Score>> optional2 = this.osuApiService.getBestScores(id, PlayMode.MANIA);
+            PlayMode playMode = bp.getOrDefault("playMode", PlayMode.class, PlayMode.MANIA);
+            Optional<List<Score>> optional2 = this.osuApiService.getBestScores(id, playMode);
             if (optional2.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
                         .append(Message.text(" 没有找到用户 " + username + " 的 BP200 成绩。")));
@@ -98,13 +102,14 @@ public class ScoreService implements Service {
             bot.sendMessage(group.getId(), Message.at(sender.getId()).append(Message.text(builder.toString())));
         }
 
-        if (str.substring(1).startsWith("bp7k ")) {
-            String param = str.substring(6);
-            Optional<User> optional = this.osuApiService.getUser(param);
+        CommandMatcher.Result bp7k = CommandMatchers.BP7K.matches(str.substring(1));
+        if (bp7k.doesMatches()) {
+            String paramUser = bp7k.getValue("user", String.class);
+            Optional<User> optional = this.osuApiService.getUser(bp7k.getValue("user", String.class));
 
             if (optional.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
-                        .append(Message.text(" 没有找到用户名或ID为 " + param + " 的用户。")));
+                        .append(Message.text(" 没有找到用户名或ID为 " + paramUser + " 的用户。")));
                 return;
             }
 
