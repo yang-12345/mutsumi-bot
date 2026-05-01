@@ -31,7 +31,7 @@ public enum PlayMode {
      * @return 字符串对应的游戏模式. 如果没有对应模式, 则返回 null.
      */
     public static PlayMode of(String str) {
-        return switch (str.trim().toLowerCase(Locale.ROOT)) {
+        return switch (str.toLowerCase(Locale.ROOT)) {
             case "standard", "std", "0" -> STANDARD;
             case "taiko", "1" -> TAIKO;
             case "catch", "fruit", "fruits", "ctb", "2" -> CATCH;
