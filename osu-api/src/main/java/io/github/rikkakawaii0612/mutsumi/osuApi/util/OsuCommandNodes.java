@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public class OsuCommandNodes {
     public static NodeBuilder nodeBuilderPlayMode(String name) {
-        return new NodeBuilder(name, param -> PlayMode.of(param) != null,
-                param -> Optional.ofNullable(PlayMode.of(param)));
+        return new NodeBuilder(name, param -> param.startsWith(":") && PlayMode.of(param.substring(1)) != null,
+                param -> Optional.ofNullable(PlayMode.of(param.substring(1))));
     }
 }
