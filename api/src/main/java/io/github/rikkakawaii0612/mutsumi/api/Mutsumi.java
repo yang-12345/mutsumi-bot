@@ -42,4 +42,8 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.BotBus;
  */
 public interface Mutsumi {
     BotBus getBotBus();
+
+    String getName();
+
+    Config getConfig();
 }

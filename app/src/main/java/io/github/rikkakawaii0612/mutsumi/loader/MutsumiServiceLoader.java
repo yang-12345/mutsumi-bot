@@ -1,9 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi.loader;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.rikkakawaii0612.mutsumi.impl.MutsumiImpl;
-import io.github.rikkakawaii0612.mutsumi.api.Config;
 import io.github.rikkakawaii0612.mutsumi.api.Service;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceLookup;
 import io.github.rikkakawaii0612.mutsumi.api.util.math.MathUtils;
@@ -16,7 +13,6 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -24,13 +20,10 @@ import java.util.jar.Manifest;
 
 public class MutsumiServiceLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger("ServiceLoader");
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final MutsumiImpl mutsumi;
     private URLClassLoader classLoader;
     private final Map<String, ServiceLookup.Wrapper> idsToServices = new HashMap<>();
-    private final Map<String, JsonNode> configs = new HashMap<>();
-    private final Config configImpl = id -> this.configs.computeIfAbsent(id, this::createConfig);
 
     // 上线程锁, 防止控制台异步同时调用 load() 和 unload()
     private final Object lock = new Object();
@@ -46,7 +39,7 @@ public class MutsumiServiceLoader {
                 this.unload();
             }
 
-            this.loadConfigs();
+            this.mutsumi.loadConfigs();
 
             // 读取目录的服务 JAR 文件, 并创建 ClassLoader
             try {
@@ -145,7 +138,7 @@ public class MutsumiServiceLoader {
                     dependencies.put(wrapper, list);
                 }
 
-                ServiceLookup lookup = new ServiceLookup(this.mutsumi, this.idsToServices, this.configImpl);
+                ServiceLookup lookup = new ServiceLookup(this.mutsumi, this.idsToServices, this.mutsumi.getConfig());
 
                 // 按依赖关系进行拓扑排序
                 List<ServiceLookup.Wrapper> sorted = MathUtils.topologicalSort(this.idsToServices.values(), dependencies);
@@ -213,39 +206,5 @@ public class MutsumiServiceLoader {
                 }
             }
         }
-    }
-
-    public void loadConfigs() {
-        this.configs.clear();
-        try {
-            File configsDir = new File("configs");
-            if (!configsDir.isDirectory()) {
-                Files.createDirectory(configsDir.toPath());
-                return;
-            }
-            File[] files = configsDir.listFiles((_, name) -> name.toLowerCase().endsWith(".json"));
-            if (files != null) {
-                for (File file : files) {
-                    String name = file.getName();
-                    try (InputStream is = new FileInputStream(file)) {
-                        this.configs.put(name.substring(0, name.length() - 5), OBJECT_MAPPER.readTree(is));
-                    } catch (Exception e) {
-                        LOGGER.warn("Cannot read config '{}': ", name, e);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Cannot read configs: ", e);
-        }
-    }
-
-    private JsonNode createConfig(String id) {
-        JsonNode node = OBJECT_MAPPER.createObjectNode();
-        try {
-            OBJECT_MAPPER.writeValue(Paths.get("configs", id + ".json").toFile(), node);
-        } catch (IOException e) {
-            LOGGER.error("Failed to create config for service '{}': ", id, e);
-        }
-        return node;
     }
 }
