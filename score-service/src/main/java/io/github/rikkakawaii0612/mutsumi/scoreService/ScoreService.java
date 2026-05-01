@@ -42,7 +42,6 @@ public class ScoreService implements Service {
             return;
         }
 
-        //todo: 指令跑不起来
         CommandMatcher.Result bp = CommandMatchers.BP.matches(str.substring(1));
         if (bp.doesMatches()) {
             String paramUser = bp.getValue("user", String.class);
