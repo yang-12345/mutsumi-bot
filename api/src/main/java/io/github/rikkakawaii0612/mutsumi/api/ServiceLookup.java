@@ -30,6 +30,7 @@ public final class ServiceLookup {
                           String id,
                           String version,
                           String author,
-                          List<String> dependencies) {
+                          List<String> dependencies,
+                          List<String> optionalDependencies) {
     }
 }

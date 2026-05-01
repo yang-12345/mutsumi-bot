@@ -102,18 +102,24 @@ public class MutsumiServiceLoader {
                         }
 
                         List<String> dependencies = new ArrayList<>();
+                        List<String> optionalDependencies = new ArrayList<>();
                         if (dependenciesField != null) {
                             // 依赖用逗号隔开, 两个依赖间的空格会被忽略
                             String[] arr = dependenciesField.trim().split(",\b*");
                             for (String str : arr) {
-                                dependencies.add(str.trim());
+                                String s = str.trim();
+                                if (s.endsWith("?")) {
+                                    optionalDependencies.add(s);
+                                } else {
+                                    dependencies.add(s);
+                                }
                             }
                         }
 
                         Class<?> clazz = this.classLoader.loadClass(mainClass);
                         Service service = (Service) clazz.getConstructor().newInstance();
                         this.idsToServices.put(id, new ServiceLookup.Wrapper(
-                                service, id, version, author, dependencies
+                                service, id, version, author, dependencies, optionalDependencies
                         ));
                     }
                 }
