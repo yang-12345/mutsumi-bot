@@ -91,7 +91,7 @@ public class ScoreService implements Service {
             StringBuilder builder = new StringBuilder(" " + this.mutsumi.getName() +
                     " 共找到用户 " + username +
                     " 的 " + scores.size() +
-                    " 个有效成绩，总 PP（不包括 Bonus PP）：" + pp);
+                    " 个有效成绩，总 PP （不包括 Bonus PP）：" + pp);
 
             int limit = Math.min(10, scores.size());
             for (int i = 0; i < limit; i++) {
