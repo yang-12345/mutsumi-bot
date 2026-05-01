@@ -1,5 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.rikkakawaii0612.mutsumi.impl.MutsumiImpl;
 import io.github.rikkakawaii0612.mutsumi.util.BotLogger;
 import net.mamoe.mirai.utils.BotConfiguration;
@@ -25,12 +26,16 @@ public class Main {
         mutsumi.runBots();
 
         //TODO: 多账号登录
-//        BotBuilder.reversed(8080)
-//                .token("")
-//                .withBotConfiguration(() -> new BotConfiguration() {{
-//                    this.setBotLoggerSupplier(_ -> new BotLogger());
-//                }})
-//                .connect();
+        JsonNode jsonNode = mutsumi.getConfig().getOrCreate("mutsumi");
+        if (jsonNode.has("localBot") && !jsonNode.get("localBot").asBoolean()) {
+            BotBuilder.reversed(8080)
+                    .token("")
+                    .withBotConfiguration(() -> new BotConfiguration() {{
+                        this.setBotLoggerSupplier(_ -> new BotLogger());
+                    }})
+                    .connect();
+        }
+
 
         // Everlasting Eternity >w<
         Thread consoleThread = new Thread(Main::onConsoleThread);
