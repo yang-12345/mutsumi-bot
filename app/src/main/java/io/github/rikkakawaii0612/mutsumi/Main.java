@@ -56,6 +56,12 @@ public class Main {
                         continue;
                     }
 
+                    if ("reloadCfg".equalsIgnoreCase(command)) {
+                        mutsumi.loadConfigs();
+                        mutsumi.loadConfigs();
+                        continue;
+                    }
+
                     if ("unload".equalsIgnoreCase(command)) {
                         mutsumi.getServiceLoader().unload();
                         continue;
