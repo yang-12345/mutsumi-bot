@@ -49,14 +49,7 @@ public final class MutsumiImpl implements Mutsumi {
     @Override
     public String getName() {
         JsonNode jsonNode = this.configImpl.getOrCreate("mutsumi");
-        if (jsonNode.has("name")) {
-            String name = jsonNode.get("name").asText();
-            LOGGER.info("Loaded '{}' as bot's name", name);
-            return name;
-        } else {
-            LOGGER.info("Bot has no custom name. Loaded 'Mutsumi' as default name");
-            return "Mutsumi";
-        }
+        return jsonNode.has("name") ? jsonNode.get("name").asText() : "Mutsumi";
     }
 
     @Override
