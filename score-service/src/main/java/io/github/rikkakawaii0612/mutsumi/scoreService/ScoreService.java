@@ -128,7 +128,7 @@ public class ScoreService implements Service {
             bot.sendMessage(group.getId(), Message.at(sender.getId())
                     .append(Message.text(" " + this.mutsumi.getName() +
                             " 正在查找用户 " + username + " 的 7K 成绩……" +
-                            "\n可能要等一会儿。 如果你的 7K 成绩有点多， 可以先去喝杯茶。")));
+                            "\n可能要等一会儿。如果你的 7K 成绩有点多，可以先去喝杯茶。")));
 
             Optional<List<BeatmapPlayCount>> optional2 = this.osuApiService.getAllPlayedBeatmaps(id);
             if (optional2.isEmpty()) {
