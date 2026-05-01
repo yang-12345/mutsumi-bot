@@ -87,6 +87,8 @@ public final class MutsumiImpl implements Mutsumi {
         } catch (Exception e) {
             LOGGER.error("Cannot read configs: ", e);
         }
+
+        LOGGER.info("Loaded {} config file(s)", this.configs.size());
     }
 
     private JsonNode createConfig(String id) {
