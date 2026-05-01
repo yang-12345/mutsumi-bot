@@ -1,5 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi.scoreService;
 
+import io.github.rikkakawaii0612.mutsumi.api.Mutsumi;
 import io.github.rikkakawaii0612.mutsumi.api.Service;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceLookup;
 import io.github.rikkakawaii0612.mutsumi.api.contact.Group;
@@ -20,6 +21,7 @@ import java.util.function.Supplier;
 public class ScoreService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("ScoreService");
 
+    private Mutsumi mutsumi;
     private OsuApiService osuApiService;
 
     public ScoreService() {
@@ -27,6 +29,7 @@ public class ScoreService implements Service {
 
     @Override
     public void load(String id, ServiceLookup lookup) {
+        this.mutsumi = lookup.getMutsumi();
         this.osuApiService = (OsuApiService) lookup.getService("osu-api").service();
         lookup.getMutsumi().getBotBus().addMessageHandler(this::onHandleMessage);
     }
@@ -49,7 +52,8 @@ public class ScoreService implements Service {
 
             if (optional.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
-                        .append(Message.text(" 没有找到用户名或ID为 " + paramUser + " 的用户。")));
+                        .append(Message.text(" " + this.mutsumi.getName() +
+                                "没有找到用户名或 ID 为 " + paramUser + " 的用户。")));
                 return;
             }
 
@@ -59,14 +63,16 @@ public class ScoreService implements Service {
             long id = user.id;
 
             bot.sendMessage(group.getId(), Message.at(sender.getId())
-                    .append(Message.text(" 正在查找用户 " + username + " 的bp200信息……" +
-                            "\n这可能需要一些时间。")));
+                    .append(Message.text(" " + this.mutsumi.getName() +
+                            " 正在查找用户 " + username + " 的 BP200 成绩……")));
 
             PlayMode playMode = bp.getOrDefault("playMode", PlayMode.class, PlayMode.MANIA);
             Optional<List<Score>> optional2 = this.osuApiService.getBestScores(id, playMode);
             if (optional2.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
-                        .append(Message.text(" 没有找到用户 " + username + " 的 BP200 成绩。")));
+                        .append(Message.text(" " + this.mutsumi.getName() +
+                                " 没有找到用户 " + username + " 的 BP200 成绩诶。" +
+                                "\n这不太对……是不是应该报告给开发者？")));
                 return;
             }
 
@@ -82,9 +88,10 @@ public class ScoreService implements Service {
             }
 
             // 计算 BonusPP 没有意义了
-            StringBuilder builder = new StringBuilder(" 用户 " + username
-                    + " 共找到 " + scores.size()
-                    + " 个有效成绩，总pp（不包括BonusPP）：" + pp);
+            StringBuilder builder = new StringBuilder(" " + this.mutsumi.getName() +
+                    " 共找到用户 " + username +
+                    " 的 " + scores.size() +
+                    " 个有效成绩，总 PP（不包括 Bonus PP）：" + pp);
 
             int limit = Math.min(10, scores.size());
             for (int i = 0; i < limit; i++) {
@@ -108,7 +115,8 @@ public class ScoreService implements Service {
 
             if (optional.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
-                        .append(Message.text(" 没有找到用户名或ID为 " + paramUser + " 的用户。")));
+                        .append(Message.text(" " + this.mutsumi.getName() +
+                                " 没有找到用户名或 ID 为 " + paramUser + " 的用户。")));
                 return;
             }
 
@@ -118,13 +126,16 @@ public class ScoreService implements Service {
             long id = user.id;
 
             bot.sendMessage(group.getId(), Message.at(sender.getId())
-                    .append(Message.text(" 正在查找用户 " + username + " 的7k信息……" +
-                            "\n这可能需要一些时间。")));
+                    .append(Message.text(" " + this.mutsumi.getName() +
+                            " 正在查找用户 " + username + " 的 7K 成绩……" +
+                            "\n可能要等一会儿. 如果你的 7K 成绩有点多, 可以先去喝杯茶.")));
 
             Optional<List<BeatmapPlayCount>> optional2 = this.osuApiService.getAllPlayedBeatmaps(id);
             if (optional2.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
-                        .append(Message.text(" 没有找到用户 " + username + " 的 BP200 成绩。")));
+                        .append(Message.text(" " + this.mutsumi.getName() +
+                                " 找不到用户 " + username + " 的游玩记录列表诶。" +
+                                "\n这不太对……是不是应该报告给开发者？")));
                 return;
             }
 
@@ -229,11 +240,12 @@ public class ScoreService implements Service {
             // 参见英文 osu wiki 对表现分的解释
             double bonusPp = 416.6667D * (1.0D - Math.exp(Math.log(0.995D) * Math.min(scoresCount, 1000)));
 
-            // 纯文本输出, 后面要改图像输出
-            StringBuilder builder = new StringBuilder(" 用户 " + username
-                    + " 共找到 " + beatmapsToScores.size()
-                    + " 个有效7k成绩，纯7k总pp：" + (pp + bonusPp)
-                    + " (" + pp + " + " + bonusPp + ")");
+            // 纯文本输出. TODO: 后面要改图像输出
+            StringBuilder builder = new StringBuilder(" " + this.mutsumi.getName() +
+                    " 共找到用户 " + username +
+                    " 的 " + beatmapsToScores.size() +
+                    " 个有效 7K 成绩，纯 7K 总 PP：" + (pp + bonusPp) +
+                    " (" + pp + " + " + bonusPp + ")");
 
             int limit = Math.min(30, beatmapsToScores.size());
             for (int i = 0; i < limit; i++) {
