@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Beatmap {
-    private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
-
     @JsonProperty("id")
     public long id = 0L;
 
@@ -117,8 +115,6 @@ public class Beatmap {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class FailTimes {
-        private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
-
         @JsonProperty("exit")
         public int[] exit = new int[100];
 

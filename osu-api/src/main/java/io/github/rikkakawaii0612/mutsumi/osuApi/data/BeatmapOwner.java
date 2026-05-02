@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BeatmapOwner {
-    private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
-
     @JsonProperty("id")
     public long id = 0L;
 

@@ -5,8 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BeatmapPlayCount {
-    private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
-
     @JsonProperty("beatmap_id")
     public long beatmapId = 0L;
 

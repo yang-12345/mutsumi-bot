@@ -10,10 +10,7 @@ import java.util.List;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Beatmapset {
-    private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
-
-    @JsonProperty("id")
+public class Beatmapset {@JsonProperty("id")
     public long id = 0L;
 
     @JsonProperty("artist")

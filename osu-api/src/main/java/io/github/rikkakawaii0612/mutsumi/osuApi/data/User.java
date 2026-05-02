@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class User {
-    private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
-
     @JsonProperty("id")
     public long id = 0L;
 
