@@ -26,16 +26,7 @@ public class MutsumiBotImpl implements MutsumiBot {
 
     public MutsumiBotImpl(Mutsumi mutsumi, Bot bot) {
         this.mutsumi = mutsumi;
-//        this.bot = BotBuilder.reversed(8080)
-//                .token("")
-//                .withBotConfiguration(() -> new BotConfiguration() {{
-//                    this.setBotLoggerSupplier(_ -> new BotLogger());
-//                }})
-//                .connect();
         this.bot = bot;
-//        if (this.bot != null) {
-//            this.bot.getEventChannel().subscribeAlways(GroupMessageEvent.class, this::onMessageReceived);
-//        }
     }
 
     @Override
