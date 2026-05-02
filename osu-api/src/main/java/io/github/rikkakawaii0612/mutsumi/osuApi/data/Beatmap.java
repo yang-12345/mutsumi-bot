@@ -112,4 +112,26 @@ public class Beatmap {
     public String toString() {
         return "osuApi.Beatmap(id=" + this.id + ")";
     }
+
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class FailTimes {
+        private static final Logger LOGGER = LoggerFactory.getLogger("OsuApi");
+
+        @JsonProperty("exit")
+        public int[] exit = new int[100];
+
+        @JsonProperty("fail")
+        public int[] fail = new int[100];
+
+        public FailTimes() {
+        }
+
+        @Override
+        public String toString() {
+            return "osuApi.FailTimes";
+        }
+    }
+
 }
