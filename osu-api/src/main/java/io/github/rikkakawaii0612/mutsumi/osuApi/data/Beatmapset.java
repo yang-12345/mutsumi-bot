@@ -28,6 +28,9 @@ public class Beatmapset {@JsonProperty("id")
     @JsonProperty("creator")
     public String creator = "";
 
+    @JsonProperty("covers")
+    public Covers covers;
+
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,
             property = "id",
             resolver = DuplicatableObjectIdResolver.class)
@@ -37,4 +40,42 @@ public class Beatmapset {@JsonProperty("id")
     public String toString() {
         return "osuApi.Beatmapset(id=" + this.id + ")";
     }
+
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Covers {
+        @JsonProperty("cover")
+        public String cover = "";
+
+        @JsonProperty("cover@2x")
+        public String cover2x = "";
+
+        @JsonProperty("card")
+        public String card = "";
+
+        @JsonProperty("card@2x")
+        public String card2x = "";
+
+        @JsonProperty("list")
+        public String list = "";
+
+        @JsonProperty("list@2x")
+        public String list2x = "";
+
+        @JsonProperty("slimcover")
+        public String slimCover = "";
+
+        @JsonProperty("slimcover@2x")
+        public String slimCover2x = "";
+
+        public Covers() {
+        }
+
+        @Override
+        public String toString() {
+            return "osuApi.Covers";
+        }
+    }
+
 }
