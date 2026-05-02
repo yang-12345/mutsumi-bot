@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.rikkakawaii0612.mutsumi.osuApi'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // SLF4J & Logback: Logger
+    compileOnly 'org.slf4j:slf4j-api:2.0.16'
+    compileOnly 'ch.qos.logback:logback-classic:1.5.13'
+
+    // Jackson: JSON resolver
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+
+    compileOnly project(':api')
+    compileOnly project(':osu-api')
+}
+
+jar {
+    manifest {
+        attributes(
+                'Service-Id': 'osu-image',
+                'Service-Class': 'io.github.rikkakawaii0612.mutsumi.osuImage.OsuImageService',
+                'Service-Version': project.version,
+                'Service-Author': 'RikkaKawaii0612'
+        )
+    }
+    //from(sourceSets.main.output)
+    //dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+test {
+    useJUnitPlatform()
+}
