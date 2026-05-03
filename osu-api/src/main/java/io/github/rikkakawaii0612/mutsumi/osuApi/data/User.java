@@ -2,6 +2,7 @@ package io.github.rikkakawaii0612.mutsumi.osuApi.data;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,9 @@ public class User {
     @JsonProperty("is_online")
     public boolean online = false;
 
+    @JsonProperty("statistics")
+    public UserStatistics statistics;
+
     public User() {
     }
 
@@ -31,4 +35,22 @@ public class User {
     public String toString() {
         return "osuApi.User(id=" + this.id + ",name=" + this.username + ")";
     }
+
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class UserStatistics {
+        @JsonProperty("pp")
+        public double pp = 0.0D;
+
+        public UserStatistics() {
+        }
+
+        @Override
+        public String toString() {
+            return "osuApi.UserStatistics";
+        }
+    }
+
+
 }
