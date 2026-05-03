@@ -199,7 +199,7 @@ public class MutsumiServiceLoader {
             } catch (InterruptedException e) {
                 LOGGER.error("Thread was interrupted while checking GC of service class loader", e);
             } finally {
-                if (Objects.equals(queue.poll(), weakReference)) {
+                if (queue.poll() != null) {
                     LOGGER.warn("Service class loader seems to be not garbage-collected, which may occur memory leak!");
                 }
             }
