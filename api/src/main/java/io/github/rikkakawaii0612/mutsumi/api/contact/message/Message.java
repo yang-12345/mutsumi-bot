@@ -21,6 +21,10 @@ public interface Message {
         return () -> target;
     }
 
+    static Image image(byte[] data) {
+        return () -> data;
+    }
+
     interface Visitor {
         void accept(SingleMessage message);
     }

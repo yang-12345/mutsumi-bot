@@ -5,6 +5,7 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.Group;
 import io.github.rikkakawaii0612.mutsumi.api.contact.Member;
 import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.At;
+import io.github.rikkakawaii0612.mutsumi.api.contact.message.Image;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Text;
 import net.mamoe.mirai.Bot;
@@ -13,9 +14,13 @@ import net.mamoe.mirai.contact.MessageTooLargeException;
 import net.mamoe.mirai.event.events.EventCancelledException;
 import net.mamoe.mirai.message.data.MessageChainBuilder;
 import net.mamoe.mirai.message.data.MessageUtils;
+import net.mamoe.mirai.utils.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 public class MutsumiBotImpl implements MutsumiBot {
@@ -39,12 +44,19 @@ public class MutsumiBotImpl implements MutsumiBot {
 
         MessageChainBuilder builder = new MessageChainBuilder();
         message.visit(m -> {
-            if (m instanceof At at) {
-                builder.append(new net.mamoe.mirai.message.data.At(at.getTarget()));
-            } else if (m instanceof Text text) {
-                builder.append(text.getText());
-            } else {
-                builder.append(m.asString());
+            switch (m) {
+                case At at -> builder.append(new net.mamoe.mirai.message.data.At(at.getTarget()));
+                case Text text -> builder.append(text.getText());
+                case Image image -> {
+                    try (ByteArrayInputStream is = new ByteArrayInputStream(image.getData());
+                         ExternalResource er = ExternalResource.create(is)) {
+                        net.mamoe.mirai.message.data.Image imagex = group.uploadImage(er);
+                        builder.append(imagex);
+                    } catch (IOException e) {
+                        LOGGER.warn("Failed to upload image {}: ", image.asString(), e);
+                    }
+                }
+                default -> builder.append(m.asString());
             }
         });
 
