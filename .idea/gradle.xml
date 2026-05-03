@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/api" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/guess-service" />
+            <option value="$PROJECT_DIR$/number-bomb" />
             <option value="$PROJECT_DIR$/osu-api" />
             <option value="$PROJECT_DIR$/osu-image" />
             <option value="$PROJECT_DIR$/score-service" />
