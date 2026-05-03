@@ -114,8 +114,8 @@ public class BotBusImpl implements BotBus {
                 CompletableFuture.runAsync(() -> {
                     try {
                         handler.handleMessage(mutsumiBot, group, sender, message);
-                    } catch (Exception e) {
-                        LOGGER.error("Caught exception while handling message: ", e);
+                    } catch (Throwable throwable) {
+                        LOGGER.error("Caught exception while handling message: ", throwable);
                     }
                 });
             });
