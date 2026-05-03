@@ -10,18 +10,18 @@ public class CommandMatchers {
     public static final CommandMatcher BP;
 
     static {
-        NodeBuilder node = space().addNode(
+        NodeBuilder node = space().then(
                 stringVarWithoutSpace("user").complete()
         );
         BP = new CommandMatcher(literalIgnoreCase("bp")
-                .addNode(OsuCommandNodes.nodeBuilderPlayMode("playMode")
-                        .addNode(node))
-                .addNode(node)
+                .then(OsuCommandNodes.nodeBuilderPlayMode("playMode")
+                        .then(node))
+                .then(node)
                 .build());
     }
 
-    public static final CommandMatcher BP7K = new CommandMatcher(literalIgnoreCase("bp7k").addNode(
-            space().addNode(
+    public static final CommandMatcher BP7K = new CommandMatcher(literalIgnoreCase("bp7k").then(
+            space().then(
                     stringVarWithoutSpace("user").complete()
             )
     ).build());

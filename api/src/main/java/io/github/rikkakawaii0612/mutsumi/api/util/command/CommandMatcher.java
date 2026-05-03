@@ -19,7 +19,7 @@ import java.util.*;
  * 我们已经提供了基本的命令节点, 可以调用这些静态方法来获取 {@link NodeBuilder} 实例.
  * 你也可以自行调用其 new 方法来创建自定义的命令节点.
  *
- * <p>要添加子节点, 只需要调用 {@link NodeBuilder#addNode(NodeBuilder)} 方法,
+ * <p>要添加子节点, 只需要调用 {@link NodeBuilder#then(NodeBuilder)} 方法,
  * 这会将一个已有的 {@link NodeBuilder} 添加到其子节点列表中. 一个节点可以有多个子节点.
  * 调用 {@link NodeBuilder#complete()} 可以创建结束节点,
  * 这意味着命令分支可以在这里结束. 注意, 没有结束节点的分支不可能匹配成功.
@@ -32,8 +32,8 @@ import java.util.*;
  * <pre>{@code
  *  // 单分支匹配器
  *  // 可以匹配: say Hello World!
- *  CommandMatcher matcherA = new CommandMatcher(NodeBuilder.literal("say").addNode(
- *          NodeBuilder.space().addNode(
+ *  CommandMatcher matcherA = new CommandMatcher(NodeBuilder.literal("say").then(
+ *          NodeBuilder.space().then(
  *                  NodeBuilder.stringVar("message").complete()
  *          )
  *  ).build());
@@ -41,15 +41,15 @@ import java.util.*;
  *  // 多分支, 带重定向的匹配器
  *  // 可以匹配: tell Hello World!
  *  // 或者匹配: tell KashiKoiAstra Hello World!
- *  NodeBuilder node = NodeBuilder.space().addNode(
+ *  NodeBuilder node = NodeBuilder.space().then(
  *          NodeBuilder.stringVar("message").complete()
  *  );
  *  CommandMatcher matcherB = new CommandMatcher(NodeBuilder.literal("tell")
- *          .addNode(node)
- *          .addNode(
- *                  NodeBuilder.space().addNode(
+ *          .then(node)
+ *          .then(
+ *                  NodeBuilder.space().then(
  *                          NodeBuilder.stringVarWithoutSpace("target")
- *                                  .addNode(node)
+ *                                  .then(node)
  *                  )
  *          )
  *          .build());

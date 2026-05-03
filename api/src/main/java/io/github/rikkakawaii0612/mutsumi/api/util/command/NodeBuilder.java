@@ -24,7 +24,7 @@ public class NodeBuilder {
         this.children = new ArrayList<>();
     }
 
-    public NodeBuilder addNode(NodeBuilder nodeBuilder) {
+    public NodeBuilder then(NodeBuilder nodeBuilder) {
         this.children.add(nodeBuilder);
         return this;
     }
@@ -38,7 +38,7 @@ public class NodeBuilder {
      * 添加一个结束节点.
      */
     public NodeBuilder complete() {
-        return this.addNode(new NodeBuilder("_end", String::isBlank, _ -> Optional.empty()));
+        return this.then(new NodeBuilder("_end", String::isBlank, _ -> Optional.empty()));
     }
 
     /**
