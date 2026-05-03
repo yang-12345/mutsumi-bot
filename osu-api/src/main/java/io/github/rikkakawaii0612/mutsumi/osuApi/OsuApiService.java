@@ -111,7 +111,27 @@ public class OsuApiService implements Service {
         try {
             return Optional.of(this.objectMapper.readValue(optional.get().toString(), User.class));
         } catch (Exception e) {
-            LOGGER.warn("Failed to resolve Score: ", e);
+            LOGGER.warn("Failed to resolve User: ", e);
+            return Optional.empty();
+        }
+    }
+
+    public Optional<User> getUser(String username, PlayMode playMode) {
+        this.checkAccessToken();
+        if (this.accessToken == null) {
+            return Optional.empty();
+        }
+
+        String str = URLEncoder.encode(username, StandardCharsets.UTF_8);
+        Optional<JsonNode> optional = this.post(String.format("users/%s/%s", str, playMode.getName()));
+        if (optional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(this.objectMapper.readValue(optional.get().toString(), User.class));
+        } catch (Exception e) {
+            LOGGER.warn("Failed to resolve User: ", e);
             return Optional.empty();
         }
     }
