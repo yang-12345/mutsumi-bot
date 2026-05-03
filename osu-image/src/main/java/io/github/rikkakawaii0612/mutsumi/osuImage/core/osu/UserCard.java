@@ -6,7 +6,6 @@ import io.github.rikkakawaii0612.mutsumi.osuImage.core.Rectangle;
 import io.github.rikkakawaii0612.mutsumi.osuImage.util.ARGB;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
 import java.net.URI;
 
@@ -17,14 +16,14 @@ public class UserCard extends Group {
 
     public UserCard(User user, double pp) {
         Text username = new Text(user.username);
-        username.setMaxFontSize(40);
-        username.setPosition(140, 56);
+        username.setMaxFontSize(36);
+        username.setPosition(138, 25);
 
         Text ppField = new Text(String.format("%.1fpp", pp));
-        ppField.setMaxFontSize(40);
-        ppField.setPosition(140, 108);
+        ppField.setMaxFontSize(36);
+        ppField.setPosition(138, 75);
 
-        this.width = Math.max(180, Math.max(username.getWidth(), ppField.getWidth()));
+        this.width = Math.max(180, 180 + Math.max(username.getWidth(), ppField.getWidth()));
 
         Rectangle background = new Rectangle(this.width, 140);
         background.setColor(BACKGROUND);
@@ -34,7 +33,7 @@ public class UserCard extends Group {
         try {
             avatar = new ImageView(URI.create(user.avatarUrl).toURL());
         } catch (MalformedURLException e) {
-            avatar = new ImageView(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB));
+            avatar = new ImageView();
         }
         avatar.setPosition(15, 15);
         avatar.resize(110, 110);
@@ -44,8 +43,7 @@ public class UserCard extends Group {
         bgCover.resize(this.width, this.width);
         bgCover.setCorner(40);
         bgCover.setAlpha(0.1D);
-        bgCover.setCut(0, 0, 0, 140);
-        bgCover.setPosition(0, (140 - this.width) / 2);
+        bgCover.cut(0, (this.width - 140) / 2, this.width, 140);
 
         this.addChildren(background, bgCover, avatar, username, ppField);
     }

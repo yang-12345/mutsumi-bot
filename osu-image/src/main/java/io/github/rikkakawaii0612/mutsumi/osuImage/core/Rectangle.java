@@ -6,8 +6,8 @@ import java.awt.*;
 
 public class Rectangle extends AbstractElement implements Colored {
     private int color = 0xFFFFFFFF;
-    private int width = 0;
-    private int height = 0;
+    private int width;
+    private int height;
     private int corner = 0;
 
     public Rectangle(int width, int height) {

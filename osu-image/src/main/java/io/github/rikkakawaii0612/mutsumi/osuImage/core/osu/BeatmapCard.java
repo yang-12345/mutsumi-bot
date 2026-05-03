@@ -5,7 +5,11 @@ import io.github.rikkakawaii0612.mutsumi.osuImage.core.Text;
 
 public class BeatmapCard extends BeatmapCardBase {
     public BeatmapCard(Beatmap beatmap) {
-        super(beatmap);
+        this(beatmap, beatmap.beatmapset.covers.cover);
+    }
+
+    public BeatmapCard(Beatmap beatmap, String coverUrl) {
+        super(coverUrl);
 
         Text title = new Text(beatmap.beatmapset.title);
         title.setPosition(195, 5);

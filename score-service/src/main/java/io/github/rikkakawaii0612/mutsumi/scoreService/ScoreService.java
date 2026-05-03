@@ -23,6 +23,7 @@ public class ScoreService implements Service {
 
     private Mutsumi mutsumi;
     private OsuApiService osuApiService;
+    private boolean imageServiceLoaded;
 
     public ScoreService() {
     }
@@ -31,6 +32,10 @@ public class ScoreService implements Service {
     public void load(String id, ServiceLookup lookup) {
         this.mutsumi = lookup.getMutsumi();
         this.osuApiService = (OsuApiService) lookup.getService("osu-api").service();
+        this.imageServiceLoaded = lookup.hasService("osu-image");
+        if (!this.imageServiceLoaded) {
+            LOGGER.info("Service '{}' didn't find service 'osu-image'. All message will be sent as literal text", id);
+        }
         lookup.getMutsumi().getBotBus().addMessageHandler(this::onHandleMessage);
     }
 
@@ -48,7 +53,9 @@ public class ScoreService implements Service {
         CommandMatcher.Result bp = CommandMatchers.BP.matches(str.substring(1));
         if (bp.doesMatches()) {
             String paramUser = bp.getValue("user", String.class);
-            Optional<User> optional = this.osuApiService.getUser(bp.getValue("user", String.class));
+            PlayMode playMode = bp.getOrDefault("playMode", PlayMode.class, PlayMode.MANIA);
+
+            Optional<User> optional = this.osuApiService.getUser(paramUser, playMode);
 
             if (optional.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
@@ -66,7 +73,6 @@ public class ScoreService implements Service {
                     .append(Message.text(" " + this.mutsumi.getName() +
                             " 正在查找用户 " + username + " 的 BP200 成绩……")));
 
-            PlayMode playMode = bp.getOrDefault("playMode", PlayMode.class, PlayMode.MANIA);
             Optional<List<Score>> optional2 = this.osuApiService.getBestScores(id, playMode);
             if (optional2.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
@@ -93,19 +99,25 @@ public class ScoreService implements Service {
                     " 的 " + scores.size() +
                     " 个有效成绩，总 PP （不包括 Bonus PP）：" + pp);
 
-            int limit = Math.min(10, scores.size());
-            for (int i = 0; i < limit; i++) {
-                Beatmapset beatmapset = scores.get(i).beatmapset;
-                builder.append("\n")
-                        .append(beatmapset.artist)
-                        .append(" - ")
-                        .append(beatmapset.title)
-                        .append(": ")
-                        .append(scores.get(i).pp)
-                        .append("pp");
-            }
+            int limit = Math.min(20, scores.size());
 
-            bot.sendMessage(group.getId(), Message.at(sender.getId()).append(Message.text(builder.toString())));
+            if (this.imageServiceLoaded) {
+                byte[] arr = Images.renderScores(user, user.statistics.pp, scores.subList(0, limit));
+                bot.sendMessage(group.getId(), Message.at(sender.getId()).append(Message.image(arr)));
+            } else {
+                for (int i = 0; i < limit; i++) {
+                    Beatmapset beatmapset = scores.get(i).beatmapset;
+                    builder.append("\n")
+                            .append(beatmapset.artist)
+                            .append(" - ")
+                            .append(beatmapset.title)
+                            .append(": ")
+                            .append(scores.get(i).pp)
+                            .append("pp");
+                }
+
+                bot.sendMessage(group.getId(), Message.at(sender.getId()).append(Message.text(builder.toString())));
+            }
         }
 
         CommandMatcher.Result bp7k = CommandMatchers.BP7K.matches(str.substring(1));
@@ -239,30 +251,40 @@ public class ScoreService implements Service {
             // 中文 osu wiki 给的就是一坨, 公式也错, 给的 N 也错
             // 参见英文 osu wiki 对表现分的解释
             double bonusPp = 416.6667D * (1.0D - Math.exp(Math.log(0.995D) * Math.min(scoresCount, 1000)));
+            int limit = Math.min(20, beatmapsToScores.size());
 
-            // 纯文本输出. TODO: 后面要改图像输出
-            StringBuilder builder = new StringBuilder(" " + this.mutsumi.getName() +
-                    " 共找到用户 " + username +
-                    " 的 " + beatmapsToScores.size() +
-                    " 个有效 7K 成绩，纯 7K 总 PP：" + (pp + bonusPp) +
-                    " (" + pp + " + " + bonusPp + ")");
+            if (this.imageServiceLoaded) {
+                beatmapsToScores.forEach(pair -> {
+                    pair.right().beatmap = pair.left();
+                    pair.right().beatmapset = pair.left().beatmapset;
+                });
+                List<Score> scoreList = beatmapsToScores.subList(0, limit).stream()
+                        .map(Pair::right).toList();
+                byte[] arr = Images.renderScores(user, pp + bonusPp, scoreList);
+                bot.sendMessage(group.getId(), Message.at(sender.getId()).append(Message.image(arr)));
+            } else {
+                StringBuilder builder = new StringBuilder(" " + this.mutsumi.getName() +
+                        " 共找到用户 " + username +
+                        " 的 " + beatmapsToScores.size() +
+                        " 个有效 7K 成绩，纯 7K 总 PP：" + (pp + bonusPp) +
+                        " (" + pp + " + " + bonusPp + ")");
 
-            int limit = Math.min(30, beatmapsToScores.size());
-            for (int i = 0; i < limit; i++) {
-                Beatmap beatmap = beatmapsToScores.get(i).left();
-                Beatmapset beatmapset = beatmap.beatmapset;
-                builder.append("\n")
-                        .append(beatmapset.artist)
-                        .append(" - ")
-                        .append(beatmapset.title)
-                        .append(" (")
-                        .append(beatmap.version)
-                        .append("): ")
-                        .append(beatmapsToScores.get(i).right().pp)
-                        .append("pp");
+                for (int i = 0; i < limit; i++) {
+                    Beatmap beatmap = beatmapsToScores.get(i).left();
+                    Beatmapset beatmapset = beatmap.beatmapset;
+                    builder.append("\n")
+                            .append(beatmapset.artist)
+                            .append(" - ")
+                            .append(beatmapset.title)
+                            .append(" (")
+                            .append(beatmap.version)
+                            .append("): ")
+                            .append(beatmapsToScores.get(i).right().pp)
+                            .append("pp");
+                }
+
+                bot.sendMessage(group.getId(), Message.at(sender.getId()).append(Message.text(builder.toString())));
             }
-
-            bot.sendMessage(group.getId(), Message.at(sender.getId()).append(Message.text(builder.toString())));
         }
     }
 }

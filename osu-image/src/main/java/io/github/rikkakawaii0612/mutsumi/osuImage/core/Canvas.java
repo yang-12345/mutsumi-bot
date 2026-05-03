@@ -75,12 +75,11 @@ public class Canvas {
         });
 
         g.dispose();
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             ImageIO.write(image, "png", byteArrayOutputStream);
+            return byteArrayOutputStream.toByteArray();
         } catch (IOException e) {
             return new byte[0];
         }
-        return byteArrayOutputStream.toByteArray();
     }
 }
