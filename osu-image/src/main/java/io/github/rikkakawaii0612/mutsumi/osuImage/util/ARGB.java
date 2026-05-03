@@ -8,7 +8,7 @@ public class ARGB {
     }
 
     public static int toArgb(int r, int g, int b) {
-        return r | (g << 8) | (b << 16);
+        return r | (g << 8) | (b << 16) | 0xFF000000;
     }
 
     public static int toArgb(int r, int g, int b, int a) {
