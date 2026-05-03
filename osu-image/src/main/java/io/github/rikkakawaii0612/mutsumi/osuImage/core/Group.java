@@ -33,7 +33,23 @@ public class Group extends AbstractElement {
 
     @Override
     public void render(Graphics2D g) {
-        this.elements.forEach(element -> element.render(g));
+        this.elements.forEach(element -> {
+            int x = element.getX(), y = element.getY();
+            g.translate(x, y);
+
+            double alpha = element.getAlpha() * this.getAlpha();
+            Composite composite = g.getComposite();
+            if (alpha < 1.0D) {
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) alpha));
+            }
+
+            element.render(g);
+
+            g.translate(-x, -y);
+            if (alpha < 1.0D) {
+                g.setComposite(composite);
+            }
+        });
     }
 
     public void addChildren(Element... elements) {
