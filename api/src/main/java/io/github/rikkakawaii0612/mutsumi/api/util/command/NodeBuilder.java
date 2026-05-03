@@ -60,6 +60,14 @@ public class NodeBuilder {
     }
 
     /**
+     * 匹配空字符串.
+     * 这可以用作根节点的多选择.
+     */
+    public static NodeBuilder empty() {
+        return new NodeBuilder("", String::isEmpty, _ -> Optional.empty());
+    }
+
+    /**
      * 匹配一个或一个以上的空格. 由于贪心算法, 这将匹配足够多的空格.
      * 常用于分隔参数.
      */
