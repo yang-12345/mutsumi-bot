@@ -6,13 +6,15 @@ import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
 public class Text extends AbstractElement implements Colored {
     private String text;
     private int color = 0xFFFFFFFF;
     private int maxWidth = Integer.MAX_VALUE;
     private int maxHeight = Integer.MAX_VALUE;
-    private String font = "等线";
+    private String[] fonts = {"Torus", "Inter", "Helvetica Neue", "Tahoma", "Arial","Hiragino Sans GB",
+            "Microsoft YaHei", "Apple SD Gothic Neo", "system-ui", "sans-serif"};
     private int maxFontSize = 6;
     private int minFontSize = 12;
 
@@ -55,7 +57,9 @@ public class Text extends AbstractElement implements Colored {
     // 大概就是自动换行之类的东西
     @Override
     public void render(Graphics2D g) {
-        if (maxFontSize < minFontSize || minFontSize <= 6) {
+        if (maxFontSize < minFontSize || minFontSize <= 6 || this.fonts.length == 0) {
+            this.width = 0;
+            this.height = 0;
             return;
         }
 
@@ -65,18 +69,23 @@ public class Text extends AbstractElement implements Colored {
         FontRenderContext context = g.getFontRenderContext();
 
         char[] arr = text.toCharArray();
-        int fontSize = maxFontSize;
         double h = 0;
-        Font en = null, cn = null;
+        Font[] fonts = new Font[this.fonts.length];
         boolean outOfRange = true;
-        for (; fontSize >= minFontSize; fontSize--) {
-            en = new Font(this.font, Font.BOLD, fontSize);
-            cn = new Font(this.font, Font.BOLD, fontSize - 6);
+        for (int fontSize = maxFontSize; fontSize >= minFontSize; fontSize--) {
+            for (int i = 0; i < this.fonts.length; i++) {
+                fonts[i] = new Font(this.fonts[i], Font.BOLD, fontSize);
+            }
             double w = 0;
             double lines = 1;
             for (char c : arr) {
-                double d = en.canDisplay(c) ? en.getStringBounds(String.valueOf(c), context).getWidth()
-                        : cn.getStringBounds(String.valueOf(c), context).getWidth();
+                String str = String.valueOf(c);
+                double d = fonts[fonts.length - 1].getStringBounds(str, context).getWidth();
+                for (Font font : fonts) {
+                    if (font.canDisplay(c)) {
+                        d = font.getStringBounds(str, context).getWidth();
+                    }
+                }
                 if (w + d > maxWidth) {
                     w = d;
                     lines++;
@@ -85,35 +94,45 @@ public class Text extends AbstractElement implements Colored {
                 }
             }
 
-            h = -5 + Math.max(en.getMaxCharBounds(context).getHeight(), cn.getMaxCharBounds(context).getHeight());
-            if (maxHeight != -1 && lines * h <= maxHeight) {
+            h = -5 + Arrays.stream(fonts)
+                    .mapToDouble(font -> font.getMaxCharBounds(context).getHeight())
+                    .max().orElse(0.0D);
+            if (lines * h <= maxHeight) {
                 outOfRange = false;
                 break;
             }
         }
 
-        Font underline = en.deriveFont(en.getSize2D() - 4.0F);
+        //Font underline = en.deriveFont(en.getSize2D() - 4.0F);
+        //Font underline = en;
         double w = 0, lines = 0;
-        double dotWidth = en.getStringBounds(".", context).getWidth();
+        Font dotFont = getPrimary('.', fonts);
+        double dotWidth = dotFont.getStringBounds(".", context).getWidth();
         double d = maxWidth - 3.0D * dotWidth;
         int limitLines = maxHeight / (int) h - 1;
+        if (limitLines < 0) {
+            this.width = 0;
+            this.height = 0;
+            return;
+        }
 
         double resultWidth = 0;
 
         for (char c : arr) {
-            boolean bl = en.canDisplay(c);
-            Rectangle2D rec = bl ? en.getStringBounds(String.valueOf(c), context)
-                    : cn.getStringBounds(String.valueOf(c), context);
+            Font font = getPrimary(c, fonts);
+            Rectangle2D rec = font.getStringBounds(String.valueOf(c), context);
             double e = rec.getWidth();
             if (outOfRange && lines == limitLines && w + e > d) {
-                Rectangle2D rectangle2D = en.getStringBounds("...", context);
-                g.setFont(en);
+                Rectangle2D rectangle2D = dotFont.getStringBounds("...", context);
+                g.setFont(dotFont);
                 g.drawString("...", (int) w, (int) (lines * h - rectangle2D.getY()));
                 break;
             }
 
+            // todo: 这肯定得改.
             if (c != '_') {
-                g.setFont(bl ? en : cn);
+            //if (true) {
+                g.setFont(font);
                 if (w + e > maxWidth) {
                     lines++;
                     g.drawString(String.valueOf(c), 0, (int) (lines * h - rec.getY()));
@@ -123,8 +142,9 @@ public class Text extends AbstractElement implements Colored {
                     w += e;
                 }
             } else {
-                g.setFont(underline);
-                double f = underline.getStringBounds("_", context).getWidth();
+                // '_'
+                g.setFont(font);
+                double f = font.getStringBounds("_", context).getWidth();
                 int i = (int) ((rec.getWidth() - f) / 2.0D);
                 if (w + e > maxWidth) {
                     lines++;
@@ -133,15 +153,24 @@ public class Text extends AbstractElement implements Colored {
                 } else {
                     g.drawString("_", (int) w + i, -7 + (int) (lines * h - rec.getY()));
                     w += e;
-                    resultWidth = Math.max(w, resultWidth);
                 }
             }
+            resultWidth = Math.max(w, resultWidth);
         }
 
         g.setColor(color);
 
         this.width = (int) resultWidth;
         this.height = (int) (h * (1 + lines));
+    }
+
+    private static Font getPrimary(char c, Font[] fonts) {
+        for (Font font : fonts) {
+            if (font.canDisplay(c)) {
+                return font;
+            }
+        }
+        return fonts[fonts.length - 1];
     }
 
     public void setText(String text) {
@@ -173,15 +202,15 @@ public class Text extends AbstractElement implements Colored {
         return this.maxHeight;
     }
 
-    public String getFont() {
-        return this.font;
+    public String[] getFont() {
+        return this.fonts;
     }
 
-    public void setFont(String font) {
-        if (!this.font.equals(font)) {
+    public void setFont(String[] fonts) {
+        if (Arrays.equals(this.fonts, fonts)) {
             this.markDirty();
         }
-        this.font = font;
+        this.fonts = fonts;
     }
 
     public int getMaxFontSize() {
