@@ -25,6 +25,10 @@ public class Main {
 
         mutsumi.runBots();
 
+        Thread consoleThread = new Thread(Main::onConsoleThread);
+        consoleThread.setDaemon(true);
+        consoleThread.start();
+
         //TODO: 多账号登录
         JsonNode jsonNode = mutsumi.getConfig().getOrCreate("mutsumi");
         if (jsonNode.has("localBot") && !jsonNode.get("localBot").asBoolean()) {
@@ -36,12 +40,7 @@ public class Main {
                     .connect();
         }
 
-
         // Everlasting Eternity >w<
-        Thread consoleThread = new Thread(Main::onConsoleThread);
-        consoleThread.setDaemon(true);
-        consoleThread.start();
-
         try {
             Thread.currentThread().join();
         } catch (InterruptedException e) {
