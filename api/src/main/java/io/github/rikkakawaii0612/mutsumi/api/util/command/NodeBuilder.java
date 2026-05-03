@@ -34,22 +34,53 @@ public class NodeBuilder {
                 this.children.stream().map(NodeBuilder::build).toList());
     }
 
+    /**
+     * 添加一个结束节点.
+     */
     public NodeBuilder complete() {
         return this.addNode(new NodeBuilder("_end", String::isBlank, _ -> Optional.empty()));
     }
 
+    /**
+     * 严格匹配给定文本, 区分大小写.
+     *
+     * @param arg 给定文本
+     */
     public static NodeBuilder literal(String arg) {
         return new NodeBuilder("", arg::equals, _ -> Optional.empty());
     }
 
+    /**
+     * 匹配给定文本, 不区分大小写.
+     *
+     * @param arg 给定文本
+     */
     public static NodeBuilder literalIgnoreCase(String arg) {
         return new NodeBuilder("", arg::equalsIgnoreCase, _ -> Optional.empty());
     }
 
+    /**
+     * 匹配一个或一个以上的空格. 由于贪心算法, 这将匹配足够多的空格.
+     * 常用于分隔参数.
+     */
     public static NodeBuilder space() {
         return new NodeBuilder("", param -> !param.isEmpty() && param.isBlank(), _ -> Optional.empty());
     }
 
+    /**
+     * 匹配空字符串或者任意多个空格. 由于贪心算法, 这将匹配足够多的空格.
+     * 常用于分隔允许不用空格分隔的参数.
+     */
+    public static NodeBuilder spaceOrEmpty() {
+        return new NodeBuilder("", String::isBlank, _ -> Optional.empty());
+    }
+
+    /**
+     * 匹配给定范围内的整型数据.
+     *
+     * @param name 参数名
+     * @param range 范围
+     */
     public static NodeBuilder intVar(String name, IntRange range) {
         return new NodeBuilder(name, param -> {
             try {
@@ -66,6 +97,12 @@ public class NodeBuilder {
         });
     }
 
+    /**
+     * 匹配给定范围内的长整型数据.
+     *
+     * @param name 参数名
+     * @param range 范围
+     */
     public static NodeBuilder longVar(String name, LongRange range) {
         return new NodeBuilder(name, param -> {
             try {
@@ -82,6 +119,12 @@ public class NodeBuilder {
         });
     }
 
+    /**
+     * 匹配给定范围内的双精度浮点型数据.
+     *
+     * @param name 参数名
+     * @param range 范围
+     */
     public static NodeBuilder doubleVar(String name, DoubleRange range) {
         return new NodeBuilder(name, param -> {
             try {
@@ -98,10 +141,20 @@ public class NodeBuilder {
         });
     }
 
+    /**
+     * 匹配任意字符串. 注意, 由于贪心算法, 从该节点开始的所有字符都会被匹配.
+     *
+     * @param name 参数名
+     */
     public static NodeBuilder stringVar(String name) {
         return new NodeBuilder(name, _ -> true, Optional::of);
     }
 
+    /**
+     * 匹配任意不带空格的字符串. 由于贪心算法, 这将匹配尽可能长的字符串.
+     *
+     * @param name 参数名
+     */
     public static NodeBuilder stringVarWithoutSpace(String name) {
         return new NodeBuilder(name, param -> !param.contains(" "), Optional::of);
     }
