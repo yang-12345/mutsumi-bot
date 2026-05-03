@@ -23,6 +23,7 @@ dependencies {
 
     compileOnly project(':api')
     compileOnly project(':osu-api')
+    compileOnly project(':osu-image')
 }
 
 jar {
@@ -31,7 +32,7 @@ jar {
                 'Service-Id': 'score-service',
                 'Service-Class': 'io.github.rikkakawaii0612.mutsumi.scoreService.ScoreService',
                 'Service-Version': project.version,
-                'Service-Dependencies': 'osu-api',
+                'Service-Dependencies': 'osu-api, osu-image?',
                 'Service-Author': 'RikkaKawaii0612'
         )
     }
