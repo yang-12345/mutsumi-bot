@@ -1,28 +1,21 @@
 package io.github.rikkakawaii0612.mutsumi.osuImage.core.osu;
 
-import io.github.rikkakawaii0612.mutsumi.osuApi.data.Beatmap;
 import io.github.rikkakawaii0612.mutsumi.osuImage.core.Group;
 import io.github.rikkakawaii0612.mutsumi.osuImage.core.ImageView;
 import io.github.rikkakawaii0612.mutsumi.osuImage.core.Rectangle;
 import io.github.rikkakawaii0612.mutsumi.osuImage.util.ARGB;
 
-import java.net.MalformedURLException;
-import java.net.URI;
+import java.awt.image.BufferedImage;
 
 public abstract class BeatmapCardBase extends Group {
     private static final int BEATMAP_BACKGROUND = ARGB.toArgb(50, 48, 44);
 
-    public BeatmapCardBase(String coverUrl) {
+    public BeatmapCardBase(BufferedImage cover) {
         Rectangle background = new Rectangle(900, 120);
         background.setColor(BEATMAP_BACKGROUND);
         background.setCorner(40);
 
-        ImageView bgCover;
-        try {
-            bgCover = new ImageView(URI.create(coverUrl).toURL());
-        } catch (MalformedURLException e) {
-            bgCover = new ImageView();
-        }
+        ImageView bgCover = new ImageView(cover);
 
         ImageView icon = bgCover.copySource();
 

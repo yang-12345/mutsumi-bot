@@ -4,10 +4,9 @@ import io.github.rikkakawaii0612.mutsumi.osuApi.data.User;
 import io.github.rikkakawaii0612.mutsumi.osuImage.core.*;
 import io.github.rikkakawaii0612.mutsumi.osuImage.core.Rectangle;
 import io.github.rikkakawaii0612.mutsumi.osuImage.util.ARGB;
+import io.github.rikkakawaii0612.mutsumi.osuImage.util.IOCache;
 
 import java.awt.*;
-import java.net.MalformedURLException;
-import java.net.URI;
 
 public class UserCard extends Group {
     private static final int BACKGROUND = ARGB.toArgb(68, 60, 54);
@@ -29,12 +28,7 @@ public class UserCard extends Group {
         background.setColor(BACKGROUND);
         background.setCorner(40);
 
-        ImageView avatar;
-        try {
-            avatar = new ImageView(URI.create(user.avatarUrl).toURL());
-        } catch (MalformedURLException e) {
-            avatar = new ImageView();
-        }
+        ImageView avatar = new ImageView(IOCache.getAvatar(user));
         avatar.setPosition(15, 15);
         avatar.resize(110, 110);
         avatar.setCorner(30);

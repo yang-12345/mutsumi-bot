@@ -5,12 +5,13 @@ import io.github.rikkakawaii0612.mutsumi.osuImage.core.Mask;
 import io.github.rikkakawaii0612.mutsumi.osuImage.core.Rectangle;
 import io.github.rikkakawaii0612.mutsumi.osuImage.core.Text;
 import io.github.rikkakawaii0612.mutsumi.osuImage.util.ARGB;
+import io.github.rikkakawaii0612.mutsumi.osuImage.util.IOCache;
 
 public class ScoreCard extends BeatmapCardBase {
     private static final int BORDER = ARGB.toArgb(96, 96, 216);
 
     public ScoreCard(Score score) {
-        super(score.beatmapset.covers.cover);
+        super(IOCache.getBeatmapsetCover(score.beatmapset));
 
         Text title = new Text(score.beatmapset.titleUnicode);
         title.setPosition(195, 8);
