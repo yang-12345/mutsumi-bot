@@ -158,4 +158,13 @@ public class NodeBuilder {
     public static NodeBuilder stringVarWithoutSpace(String name) {
         return new NodeBuilder(name, param -> !param.contains(" "), Optional::of);
     }
+
+    /**
+     * 匹配任意单字符.
+     *
+     * @param name 参数名
+     */
+    public static NodeBuilder charVar(String name) {
+        return new NodeBuilder(name, param -> param.length() == 1, param -> Optional.of(param.charAt(0)));
+    }
 }
