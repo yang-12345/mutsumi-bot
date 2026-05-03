@@ -7,6 +7,6 @@ public interface Image extends SingleMessage {
 
     @Override
     default String asString() {
-        return "Image@" + Arrays.hashCode(this.getData());
+        return "Image@" + Integer.toHexString(Arrays.hashCode(this.getData()));
     }
 }
