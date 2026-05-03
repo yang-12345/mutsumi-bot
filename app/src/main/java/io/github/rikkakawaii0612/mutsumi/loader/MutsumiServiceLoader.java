@@ -146,8 +146,8 @@ public class MutsumiServiceLoader {
                     wrapper.service().load(wrapper.id(), lookup);
                 }
 
-            } catch (Exception e) {
-                LOGGER.error("Failed to load services: ", e);
+            } catch (Throwable throwable) {
+                LOGGER.error("Failed to load services: ", throwable);
                 this.unload();
                 return;
             }
@@ -168,8 +168,8 @@ public class MutsumiServiceLoader {
             for (ServiceLookup.Wrapper wrapper : this.idsToServices.values()) {
                 try {
                     wrapper.service().unload();
-                } catch (Exception e) {
-                    LOGGER.error("Failed to unload service {}, which may occur memory leak: ", wrapper.id(), e);
+                } catch (Throwable throwable) {
+                    LOGGER.error("Failed to unload service {}, which may occur memory leak: ", wrapper.id(), throwable);
                     successful = false;
                 }
             }
