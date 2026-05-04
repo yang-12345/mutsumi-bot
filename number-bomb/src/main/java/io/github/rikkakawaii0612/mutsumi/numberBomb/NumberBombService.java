@@ -113,7 +113,7 @@ public class NumberBombService implements Service {
         boolean newPlayer = !gameInfo.getPlayers().contains(senderId);
         if (gameInfo.select(value, senderId)) {
             bot.sendMessage(groupId, Message.at(senderId)
-                    .append(" 嘣！恭喜你踩中炸弹了哦。不知道这是幸运还是霉运呢，反正游戏已经结束了。" +
+                    .append(" 嘣\uD83D\uDCA5！恭喜你踩中炸弹了哦。不知道这是幸运还是霉运呢，反正游戏已经结束了。" +
                             "\n炸弹数字：" + value));
             this.gameInfos.remove(groupId);
         } else {
