@@ -21,8 +21,11 @@ dependencies {
     // Jackson: JSON resolver
     compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
 
+    implementation 'com.belerweb:pinyin4j:2.5.1'
+
     compileOnly project(':api')
     compileOnly project(':osu-api')
+    compileOnly project(':osu-image')
 }
 
 jar {
@@ -31,15 +34,14 @@ jar {
                 'Service-Id': 'guess-service',
                 'Service-Class': 'io.github.rikkakawaii0612.mutsumi.guessService.GuessService',
                 'Service-Version': project.version,
-                'Service-Dependencies': 'osu-api',
+                'Service-Dependencies': 'osu-api, osu-image',
                 'Service-Author': 'RikkaKawaii0612'
         )
     }
-    from(sourceSets.main.output)
-    dependsOn configurations.runtimeClasspath
-    into('lib') {
-        from configurations.runtimeClasspath.findAll { it.name.endsWith('.jar') }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 test {

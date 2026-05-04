@@ -18,7 +18,7 @@ public class Text extends AbstractElement implements Colored {
     private int maxHeight = Integer.MAX_VALUE;
     private String[] fonts = {"Torus", "等线", "微软雅黑", "Inter", "Microsoft YaHei", "Helvetica Neue", "Tahoma", "Arial",
             "Hiragino Sans GB", "Apple SD Gothic Neo", "system-ui", "sans-serif"};
-    private int maxFontSize = 6;
+    private int maxFontSize = 12;
     private int minFontSize = 12;
 
     private int width;
@@ -83,7 +83,7 @@ public class Text extends AbstractElement implements Colored {
             for (char c : arr) {
                 builder.setFont(getPrimary(c, fonts)).append(c);
                 TextLayout layout = new TextLayout(builder.build().getIterator(), context);
-                if (layout.getAdvance() > maxWidth) {
+                if (layout.getBounds().getWidth() > maxWidth) {
                     lines++;
                     builder.clear();
                 }

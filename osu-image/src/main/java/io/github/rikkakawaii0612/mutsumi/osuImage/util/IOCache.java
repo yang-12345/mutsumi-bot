@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -104,8 +105,8 @@ public class IOCache {
             return null;
         }
 
-        try {
-            return ImageIO.read(file);
+        try (InputStream is = new FileInputStream(file)) {
+            return ImageUtil.readImage(is);
         } catch (IOException e) {
             return null;
         }

@@ -71,9 +71,13 @@ public class NumberBombService implements Service {
 
         Pair<Integer, Integer> pair = params.getValue("range", Pair.class);
         int min = pair.left(), max = pair.right();
-        if (min >= max) {
+        if (min == max) {
             bot.sendMessage(groupId, Message.at(senderId)
-                    .append(" 最大值大于等于最小值……这还猜什么啊！"));
+                    .append(" 最大值等于最小值……这还猜什么啊！"));
+            return;
+        } else if (min > max) {
+            bot.sendMessage(groupId, Message.at(senderId)
+                    .append(" 最大值比最小值还小……这还猜什么啊！"));
             return;
         }
         if (max > 1000 || min < -1000) {
@@ -128,7 +132,7 @@ public class NumberBombService implements Service {
                         .append(playersInfo));
             } else if (max - min <= 2) {
                 bot.sendMessage(groupId, Message.at(senderId)
-                        .append(" 还好，没有踩中炸弹……但是接下来三选一，考验心态的时候到了。" +
+                        .append(" 还好，没有踩中炸弹……但是接下来三选二，考验心态的时候到了。" +
                                 "\n当前范围：" + min + ", " + (min + 1) + ", " + max)
                         .append(playersInfo));
             } else if (max - min <= 3) {
@@ -137,9 +141,14 @@ public class NumberBombService implements Service {
                                 "\n当前范围：" + min + ", " + (min + 1) + ", " + (min + 2) + ", " + max)
                         .append(playersInfo));
             } else if (max - min <= 9) {
+                StringBuilder builder = new StringBuilder();
+                builder.append(min);
+                for (int i = min + 1; i <= max; i++) {
+                    builder.append(", ").append(i);
+                }
                 bot.sendMessage(groupId, Message.at(senderId)
                         .append(" 还好，没有踩中炸弹。但是接下来要步步为营了哦。" +
-                                "\n当前范围：" + min + "~" + max)
+                                "\n当前范围：" + builder)
                         .append(playersInfo));
             } else {
                 bot.sendMessage(groupId, Message.at(senderId)

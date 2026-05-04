@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/number-bomb" />
             <option value="$PROJECT_DIR$/osu-api" />
             <option value="$PROJECT_DIR$/osu-image" />
+            <option value="$PROJECT_DIR$/osu-random-beatmap" />
             <option value="$PROJECT_DIR$/score-service" />
           </set>
         </option>

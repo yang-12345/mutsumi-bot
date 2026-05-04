@@ -60,7 +60,7 @@ public class ScoreService implements Service {
             if (optional.isEmpty()) {
                 bot.sendMessage(group.getId(), Message.at(sender.getId())
                         .append(Message.text(" " + this.mutsumi.getName() +
-                                "没有找到用户名或 ID 为 " + paramUser + " 的用户。")));
+                                " 没有找到用户名或 ID 为 " + paramUser + " 的用户。")));
                 return;
             }
 
