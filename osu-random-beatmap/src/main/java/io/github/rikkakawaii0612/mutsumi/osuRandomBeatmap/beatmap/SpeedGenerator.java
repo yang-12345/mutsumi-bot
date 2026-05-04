@@ -104,9 +104,10 @@ public class SpeedGenerator extends Generator {
         List<HitObject> hitObjects = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             int column;
-            if (!normals.isEmpty() && this.random.nextDouble() >= this.bumpChance) {
+            boolean bl = bumps.isEmpty();
+            if (!normals.isEmpty() && (bl || this.random.nextDouble() >= this.bumpChance)) {
                 column = normals.remove(this.random.nextInt(normals.size()));
-            } else if (!bumps.isEmpty()) {
+            } else if (!bl) {
                 column = bumps.remove(this.random.nextInt(bumps.size()));
             } else {
                 continue;

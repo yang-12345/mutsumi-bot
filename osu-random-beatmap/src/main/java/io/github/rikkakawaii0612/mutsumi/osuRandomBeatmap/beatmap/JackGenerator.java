@@ -103,9 +103,12 @@ public class JackGenerator extends Generator {
                 weights.add(Math.exp(p * Math.log(0.5D + i))); // w = x ^ ( (a-1) / (a+1) )
             }
         } else {
+            double p = 1.0D + (this.anchor - 1.0D) / 8.0D;
             for (int i : this.anchored) {
-                double d = 0.5D * Math.sqrt(i) - 0.5D - this.anchor;
-                weights.add(Math.exp((1.0D - this.anchor) * d * d)); // w = e ^ ( (1-a) * (0.5sqrt(x) - 0.5 - a)^2 )
+                // p = 1 + (a-1)/8
+                // w = e ^ ( (1-p) * (0.5sqrt(x) - 0.5 - p)^2 )
+                double d = 0.5D * Math.sqrt(i) - 0.5D - p;
+                weights.add(Math.exp((1.0D - p) * d * d));
             }
         }
         HitObject[] hitObjects = new HitObject[count];
