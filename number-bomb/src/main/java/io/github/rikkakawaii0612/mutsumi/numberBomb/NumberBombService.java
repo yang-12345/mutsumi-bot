@@ -60,6 +60,7 @@ public class NumberBombService implements Service {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void commandBombStart(MutsumiBot bot, Group group, Member sender, CommandMatcher.Result params) {
         long groupId = group.getId();
         long senderId = sender.getId();
