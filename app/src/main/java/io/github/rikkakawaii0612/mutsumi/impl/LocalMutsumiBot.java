@@ -7,6 +7,7 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class LocalMutsumiBot implements MutsumiBot {
@@ -36,6 +37,11 @@ public class LocalMutsumiBot implements MutsumiBot {
     @Override
     public Group getGroup(long id) {
         return id == 1 ? this.group : null;
+    }
+
+    @Override
+    public void uploadFile(long group, String fileName, byte[] data) {
+        LOGGER.info("Uploaded file '{}': {}", fileName, Integer.toHexString(Arrays.hashCode(data)));
     }
 
     public Group getGroup() {

@@ -9,4 +9,6 @@ public interface MutsumiBot {
     void sendMessage(long group, Message message);
 
     Group getGroup(long id);
+
+    void uploadFile(long group, String fileName, byte[] data);
 }

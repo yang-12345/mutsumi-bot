@@ -11,10 +11,12 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.message.Text;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.BotIsBeingMutedException;
 import net.mamoe.mirai.contact.MessageTooLargeException;
+import net.mamoe.mirai.contact.file.AbsoluteFile;
 import net.mamoe.mirai.event.events.EventCancelledException;
 import net.mamoe.mirai.message.data.MessageChainBuilder;
 import net.mamoe.mirai.message.data.MessageUtils;
 import net.mamoe.mirai.utils.ExternalResource;
+import net.mamoe.mirai.utils.RemoteFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +40,7 @@ public class MutsumiBotImpl implements MutsumiBot {
     public void sendMessage(long id, Message message) {
         net.mamoe.mirai.contact.Group group = this.bot.getGroup(id);
         if (group == null) {
-            LOGGER.warn("Try to send message in invalid group {}!", id);
+            LOGGER.warn("Try to send message in invalid group {}", id);
             return;
         }
 
@@ -96,5 +98,19 @@ public class MutsumiBotImpl implements MutsumiBot {
         }
 
         return null;
+    }
+
+    @Override
+    public void uploadFile(long id, String fileName, byte[] data) {
+        net.mamoe.mirai.contact.Group group = this.bot.getGroup(id);
+        if (group == null) {
+            LOGGER.warn("Try to send message in invalid group {}", id);
+            return;
+        }
+        try (ExternalResource resource = ExternalResource.create(data, fileName)) {
+            group.getFiles().uploadNewFile(fileName, resource);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to upload file '{}' in group {}: ", fileName, id, e);
+        }
     }
 }
