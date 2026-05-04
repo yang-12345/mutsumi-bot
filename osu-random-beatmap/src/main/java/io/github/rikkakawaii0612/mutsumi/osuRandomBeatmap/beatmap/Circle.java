@@ -1,4 +1,4 @@
-package io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap;
+package io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap.beatmap;
 
 public record Circle(int column, int time, boolean start) implements HitObject {
     public Circle(int column, int time) {

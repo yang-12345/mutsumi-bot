@@ -1,6 +1,7 @@
 package io.github.rikkakawaii0612.mutsumi.api.util.math;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MathUtils {
     /**
@@ -65,5 +66,57 @@ public class MathUtils {
         }
 
         return result;
+    }
+
+    /**
+     * 根据权重列表，从元素列表中随机选择一个元素
+     *
+     * @param items   元素列表
+     * @param weights 对应的权重列表 (非负，权重总和必须 > 0)
+     * @param <T>     元素类型
+     * @return 被选中的元素
+     * @throws IllegalArgumentException 如果参数非法 (null、长度不一致、包含负数或无穷大、总权重非正)
+     */
+    public static <T> T choose(List<T> items, List<Double> weights) {
+        // 参数校验
+        if (items == null || weights == null) {
+            throw new NullPointerException("null");
+        }
+        if (items.size() != weights.size()) {
+            throw new IllegalArgumentException("Inconsistent length of items and weights");
+        }
+        if (items.isEmpty()) {
+            throw new IllegalArgumentException("Empty items");
+        }
+
+        // 计算总权重，同时检查权重的有效性
+        double totalWeight = 0.0;
+        for (double w : weights) {
+            if (w < 0) {
+                throw new IllegalArgumentException("Weight must be not negative: " + w);
+            }
+            if (Double.isNaN(w) || Double.isInfinite(w)) {
+                throw new IllegalArgumentException("Weight must be finite: " + w);
+            }
+            totalWeight += w;
+        }
+        if (totalWeight <= 0) {
+            throw new IllegalArgumentException("Total weight must be positive");
+        }
+
+        // 生成 [0, totalWeight) 范围内的随机数
+        double random = ThreadLocalRandom.current().nextDouble() * totalWeight;
+
+        // 累加权重并找到随机数落在的区间
+        double cumulative = 0.0;
+        for (int i = 0; i < items.size(); i++) {
+            cumulative += weights.get(i);
+            if (random < cumulative) {
+                return items.get(i);
+            }
+        }
+
+        // 理论上应已在上面的循环中返回，此处作为浮点误差的保底（返回最后一个元素）
+        return items.getLast();
     }
 }

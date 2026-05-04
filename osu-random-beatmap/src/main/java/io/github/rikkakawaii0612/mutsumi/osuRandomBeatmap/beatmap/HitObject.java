@@ -1,4 +1,4 @@
-package io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap;
+package io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap.beatmap;
 
 public interface HitObject {
     int getTime();

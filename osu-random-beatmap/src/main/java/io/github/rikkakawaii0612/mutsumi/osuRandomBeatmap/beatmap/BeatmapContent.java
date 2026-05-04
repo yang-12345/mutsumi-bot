@@ -1,27 +1,18 @@
-package io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap;
+package io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap.beatmap;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class BeatmapContent {
-    private double bpm;
+    private final double bpm;
+    private final double od;
+    private final double hp;
     private final List<HitObject> hitObjects = new ArrayList<>();
-    private double od;
-    private double hp;
 
-    public BeatmapContent() {
-    }
-
-    public void setBpm(double bpm) {
+    public BeatmapContent(double bpm, double od, double hp) {
         this.bpm = bpm;
-    }
-
-    public void setOd(double od) {
         this.od = od;
-    }
-
-    public void setHp(double hp) {
         this.hp = hp;
     }
 
