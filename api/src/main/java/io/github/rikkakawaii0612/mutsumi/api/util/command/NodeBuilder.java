@@ -92,6 +92,9 @@ public class NodeBuilder {
      */
     public static NodeBuilder intVar(String name, IntRange range) {
         return new NodeBuilder(name, param -> {
+            if (param.contains(" ")) {
+                return false;
+            }
             try {
                 return range.matches(Integer.parseInt(param));
             } catch (NumberFormatException _) {
@@ -114,6 +117,9 @@ public class NodeBuilder {
      */
     public static NodeBuilder longVar(String name, LongRange range) {
         return new NodeBuilder(name, param -> {
+            if (param.contains(" ")) {
+                return false;
+            }
             try {
                 return range.matches(Long.parseLong(param));
             } catch (NumberFormatException _) {
@@ -136,6 +142,9 @@ public class NodeBuilder {
      */
     public static NodeBuilder doubleVar(String name, DoubleRange range) {
         return new NodeBuilder(name, param -> {
+            if (param.contains(" ")) {
+                return false;
+            }
             try {
                 return range.matches(Double.parseDouble(param));
             } catch (NumberFormatException _) {
@@ -189,6 +198,9 @@ public class NodeBuilder {
             }
             String[] arr = param.split("~");
             if (arr.length != 2) {
+                return false;
+            }
+            if (arr[0].contains(" ") || arr[1].contains(" ")) {
                 return false;
             }
             try {

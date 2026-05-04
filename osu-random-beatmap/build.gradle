@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // SLF4J & Logback: Logger
+    compileOnly 'org.slf4j:slf4j-api:2.0.16'
+    compileOnly 'ch.qos.logback:logback-classic:1.5.13'
+
+    // Jackson: JSON resolver
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+
+    // Jump3r: mp3 file supports
+    implementation 'de.sciss:jump3r:1.0.5'
+
+    compileOnly project(':api')
+    compileOnly project(':osu-api')
+}
+
+jar {
+    manifest {
+        attributes(
+                'Service-Id': 'osu-random-beatmap',
+                'Service-Class': 'io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap.OsuRandomBeatmapService',
+                'Service-Version': project.version,
+                'Service-Author': 'RikkaKawaii0612'
+        )
+    }
+    //from(sourceSets.main.output)
+    //dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+test {
+    useJUnitPlatform()
+}
