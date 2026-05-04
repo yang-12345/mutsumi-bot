@@ -115,7 +115,7 @@ public class CommandMatcher {
     // 返回各个节点的终止索引
     // 在没有结束节点的情况下, 此方法必定返回空列表
     private static List<Pair<Node, Integer>> parse(Node node, String command) {
-        if ("_end".equals(node.getName())) {
+        if ("_end".equals(node.getName()) && node.matches(command)) {
             return List.of(new Pair<>(node, command.length()));
         }
 
