@@ -1,5 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi.api.util.command;
 
+import io.github.rikkakawaii0612.mutsumi.api.util.Pair;
 import io.github.rikkakawaii0612.mutsumi.api.util.math.DoubleRange;
 import io.github.rikkakawaii0612.mutsumi.api.util.math.IntRange;
 import io.github.rikkakawaii0612.mutsumi.api.util.math.LongRange;
@@ -174,5 +175,41 @@ public class NodeBuilder {
      */
     public static NodeBuilder charVar(String name) {
         return new NodeBuilder(name, param -> param.length() == 1, param -> Optional.of(param.charAt(0)));
+    }
+
+    /**
+     * 匹配整型数据范围, 格式 a~b.
+     *
+     * @param name 参数名
+     */
+    public static NodeBuilder intRange(String name) {
+        return new NodeBuilder(name, param -> {
+            if (!param.contains("~")) {
+                return false;
+            }
+            String[] arr = param.split("~");
+            if (arr.length != 2) {
+                return false;
+            }
+            try {
+                Integer.parseInt(arr[0]);
+                Integer.parseInt(arr[1]);
+                return true;
+            } catch (NumberFormatException _) {
+                return false;
+            }
+        }, param -> {
+            String[] arr = param.split("~");
+            if (arr.length != 2) {
+                return Optional.empty();
+            }
+            try {
+                int min = Integer.parseInt(arr[0]);
+                int max = Integer.parseInt(arr[1]);
+                return Optional.of(new Pair<>(min, max));
+            } catch (NumberFormatException _) {
+                return Optional.empty();
+            }
+        });
     }
 }
