@@ -61,7 +61,7 @@ public class BeatmapContent {
                 ArtistUnicode:Mutsumi
                 Creator:Mutsumi
                 Version:OvO
-                Source:BMS
+                Source:Mutsumi
                 Tags:random
                 BeatmapID:0
                 BeatmapSetID:-1
