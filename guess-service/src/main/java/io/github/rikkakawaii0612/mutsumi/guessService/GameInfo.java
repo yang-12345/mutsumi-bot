@@ -2,33 +2,36 @@ package io.github.rikkakawaii0612.mutsumi.guessService;
 
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.Beatmap;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.Beatmapset;
+import io.github.rikkakawaii0612.mutsumi.osuApi.data.PlayMode;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.sourceforge.pinyin4j.PinyinHelper;
+import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 import java.util.*;
 
 public class GameInfo {
-    private static final Logger LOGGER = LoggerFactory.getLogger("GuessService");
+    private static final HanyuPinyinOutputFormat PINYIN_FORMAT = new HanyuPinyinOutputFormat();
+    private static final Map<Character, Character> JAPANESE_MAP = new HashMap<>();
 
     private final User user;
     private final List<Beatmap> beatmaps;
     private final List<Character> openedCharacters;
-    private final List<Character> implicitOpenedCharacters;
     private final List<Boolean> decrypted;
     private final boolean showArtist;
     private final boolean unicode;
-    private final String mode;
+    private final PlayMode mode;
 
     public GameInfo(User user,
                     List<Beatmap> beatmaps,
-                    String mode,
+                    PlayMode mode,
                     boolean showArtist,
                     boolean unicode) {
         this.user = user;
         this.beatmaps = beatmaps;
         this.openedCharacters = new ArrayList<>();
-        this.implicitOpenedCharacters = new ArrayList<>();
         this.decrypted = new ArrayList<>();
         for (int i = 0; i < this.beatmaps.size(); i++) {
             this.decrypted.add(false);
@@ -50,7 +53,7 @@ public class GameInfo {
         return this.unicode;
     }
 
-    public String getMode() {
+    public PlayMode getMode() {
         return this.mode;
     }
 
@@ -60,33 +63,11 @@ public class GameInfo {
 
     public boolean open(char character) {
         char c = Character.toLowerCase(character);
-        if (character == ' ' || this.implicitOpenedCharacters.contains(c)) {
+        if (this.isInOpenedCharacters(c)) {
             return false;
         }
         this.openedCharacters.add(c);
         this.openedCharacters.sort(Character::compareTo);
-        this.implicitOpenedCharacters.add(c);
-        switch (c) {
-            case 'a' -> this.implicitOpenedCharacters.addAll(List.of('あ', 'ア'));
-            case 'i' -> this.implicitOpenedCharacters.addAll(List.of('い', 'イ'));
-            case 'u' -> this.implicitOpenedCharacters.addAll(List.of('う', 'ウ'));
-            case 'e' -> this.implicitOpenedCharacters.addAll(List.of('え', 'エ'));
-            case 'o' -> this.implicitOpenedCharacters.addAll(List.of('お', 'オ'));
-            case 'k' -> this.implicitOpenedCharacters.addAll(List.of('か', 'カ', 'き', 'キ', 'く', 'ク', 'け', 'ケ', 'こ', 'コ'));
-            case 's' -> this.implicitOpenedCharacters.addAll(List.of('さ', 'サ', 'し', 'シ', 'す', 'ス', 'せ', 'セ', 'そ', 'ソ'));
-            case 't' -> this.implicitOpenedCharacters.addAll(List.of('た', 'タ', 'ち', 'チ', 'つ', 'ツ', 'て', 'テ', 'と', 'ト'));
-            case 'n' -> this.implicitOpenedCharacters.addAll(List.of('な', 'ナ', 'に', 'ニ', 'ぬ', 'ヌ', 'ね', 'ネ', 'の', 'ノ', 'ん', 'ン'));
-            case 'h' -> this.implicitOpenedCharacters.addAll(List.of('は', 'ハ', 'ひ', 'ヒ', 'ふ', 'フ', 'へ', 'ヘ', 'ほ', 'ホ'));
-            case 'm' -> this.implicitOpenedCharacters.addAll(List.of('ま', 'マ', 'み', 'ミ', 'む', 'ム', 'め', 'メ', 'も', 'モ'));
-            case 'y' -> this.implicitOpenedCharacters.addAll(List.of('や', 'ヤ', 'ゆ', 'ユ', 'よ', 'ヨ'));
-            case 'r' -> this.implicitOpenedCharacters.addAll(List.of('ら', 'ラ', 'り', 'リ', 'る', 'ル', 'れ', 'レ', 'ろ', 'ロ'));
-            case 'w' -> this.implicitOpenedCharacters.addAll(List.of('わ', 'ワ', 'を', 'ヲ'));
-            case 'g' -> this.implicitOpenedCharacters.addAll(List.of('が', 'ガ', 'ぎ', 'ギ', 'ʲ', 'ぐ', 'グ', 'げ', 'ゲ', 'ご', 'ゴ'));
-            case 'z' -> this.implicitOpenedCharacters.addAll(List.of('ざ', 'ザ', 'じ', 'ジ', 'ʒ', 'ず', 'ズ', 'ぜ', 'ゼ', 'ぞ', 'ゾ'));
-            case 'd' -> this.implicitOpenedCharacters.addAll(List.of('だ', 'ダ', 'ぢ', 'ヂ', 'ʒ', 'づ', 'ヅ', 'で', 'デ', 'ど', 'ド'));
-            case 'b' -> this.implicitOpenedCharacters.addAll(List.of('ば', 'バ', 'び', 'ビ', 'ぶ', 'ブ', 'べ', 'ベ', 'ぼ', 'ボ'));
-            case 'p' -> this.implicitOpenedCharacters.addAll(List.of('ぱ', 'パ', 'ぴ', 'ピ', 'ぷ', 'プ', 'ぺ', 'ペ', 'ぽ', 'ポ'));
-        }
         return true;
     }
 
@@ -101,12 +82,35 @@ public class GameInfo {
     public String encrypt(String text) {
         char[] chars = text.toCharArray();
         for (int i = 0; i < chars.length; i++) {
-            char c = Character.toLowerCase(chars[i]);
-            if (!this.implicitOpenedCharacters.contains(c) && c != ' ') {
+            if (!this.isInOpenedCharacters(chars[i])) {
                 chars[i] = '_';
             }
         }
         return new String(chars);
+    }
+
+    private boolean isInOpenedCharacters(char character) {
+        char c = Character.toLowerCase(character);
+        if (c == ' ' || this.openedCharacters.contains(c)) {
+            return true;
+        }
+
+        // 检查汉字, 只要拼音首字母对得上就行
+        try {
+            String[] arr = PinyinHelper.toHanyuPinyinStringArray(c, PINYIN_FORMAT);
+            if (arr != null) {
+                for (String str : arr) {
+                    if (this.openedCharacters.contains(str.charAt(0))) {
+                        return true;
+                    }
+                }
+            }
+        } catch (BadHanyuPinyinOutputFormatCombination _) {
+        }
+
+        // 检查日文 (包括平假名, 片假名), 罗马音首字母对得上就行
+        return JAPANESE_MAP.containsKey(c) && this.openedCharacters.contains(
+                JAPANESE_MAP.get(c));
     }
 
     public List<Character> getOpenedCharacters() {
@@ -177,5 +181,36 @@ public class GameInfo {
 
     public void decryptAll() {
         Collections.fill(this.decrypted, true);
+    }
+
+    public void decrypt(int index) {
+        this.decrypted.set(index, true);
+    }
+
+
+
+    static {
+        PINYIN_FORMAT.setCaseType(HanyuPinyinCaseType.LOWERCASE);
+        PINYIN_FORMAT.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+
+        List.of('あ', 'ア').forEach(c -> JAPANESE_MAP.put(c, 'a'));
+        List.of('い', 'イ').forEach(c -> JAPANESE_MAP.put(c, 'i'));
+        List.of('う', 'ウ').forEach(c -> JAPANESE_MAP.put(c, 'u'));
+        List.of('え', 'エ').forEach(c -> JAPANESE_MAP.put(c, 'e'));
+        List.of('お', 'オ').forEach(c -> JAPANESE_MAP.put(c, 'o'));
+        List.of('か', 'カ', 'き', 'キ', 'く', 'ク', 'け', 'ケ', 'こ', 'コ').forEach(c -> JAPANESE_MAP.put(c, 'k'));
+        List.of('さ', 'サ', 'し', 'シ', 'す', 'ス', 'せ', 'セ', 'そ', 'ソ').forEach(c -> JAPANESE_MAP.put(c, 's'));
+        List.of('た', 'タ', 'ち', 'チ', 'つ', 'ツ', 'て', 'テ', 'と', 'ト').forEach(c -> JAPANESE_MAP.put(c, 't'));
+        List.of('な', 'ナ', 'に', 'ニ', 'ぬ', 'ヌ', 'ね', 'ネ', 'の', 'ノ', 'ん', 'ン').forEach(c -> JAPANESE_MAP.put(c, 'n'));
+        List.of('は', 'ハ', 'ひ', 'ヒ', 'ふ', 'フ', 'へ', 'ヘ', 'ほ', 'ホ').forEach(c -> JAPANESE_MAP.put(c, 'h'));
+        List.of('ま', 'マ', 'み', 'ミ', 'む', 'ム', 'め', 'メ', 'も', 'モ').forEach(c -> JAPANESE_MAP.put(c, 'm'));
+        List.of('や', 'ヤ', 'ゆ', 'ユ', 'よ', 'ヨ').forEach(c -> JAPANESE_MAP.put(c, 'y'));
+        List.of('ら', 'ラ', 'り', 'リ', 'る', 'ル', 'れ', 'レ', 'ろ', 'ロ').forEach(c -> JAPANESE_MAP.put(c, 'r'));
+        List.of('わ', 'ワ', 'を', 'ヲ').forEach(c -> JAPANESE_MAP.put(c, 'w'));
+        List.of('が', 'ガ', 'ぎ', 'ギ', 'ʲ', 'ぐ', 'グ', 'げ', 'ゲ', 'ご', 'ゴ').forEach(c -> JAPANESE_MAP.put(c, 'g'));
+        List.of('ざ', 'ザ', 'じ', 'ジ', 'ʒ', 'ず', 'ズ', 'ぜ', 'ゼ', 'ぞ', 'ゾ').forEach(c -> JAPANESE_MAP.put(c, 'z'));
+        List.of('だ', 'ダ', 'ぢ', 'ヂ', 'ʒ', 'づ', 'ヅ', 'で', 'デ', 'ど', 'ド').forEach(c -> JAPANESE_MAP.put(c, 'd'));
+        List.of('ば', 'バ', 'び', 'ビ', 'ぶ', 'ブ', 'べ', 'ベ', 'ぼ', 'ボ').forEach(c -> JAPANESE_MAP.put(c, 'b'));
+        List.of('ぱ', 'パ', 'ぴ', 'ピ', 'ぷ', 'プ', 'ぺ', 'ペ', 'ぽ', 'ポ').forEach(c -> JAPANESE_MAP.put(c, 'p'));
     }
 }
