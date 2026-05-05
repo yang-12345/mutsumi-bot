@@ -25,7 +25,6 @@ public class OsuImageService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuImageService");
 
     private Mutsumi mutsumi;
-    private final Object lock = new Object();
 
     private final Map<Long, Map<Long, GreekInfo>> listeningInfos = new ConcurrentHashMap<>();
 
@@ -62,12 +61,10 @@ public class OsuImageService implements Service {
             return;
         }
 
-        synchronized (this.lock) {
-            String command = str.substring(1);
-            CommandMatcher.Result greek = CommandMatchers.GREEK.matches(command);
-            if (greek.doesMatches()) {
-                this.commandGreek(bot, group, sender, greek);
-            }
+        String command = str.substring(1);
+        CommandMatcher.Result greek = CommandMatchers.GREEK.matches(command);
+        if (greek.doesMatches()) {
+            this.commandGreek(bot, group, sender, greek);
         }
     }
 
@@ -91,7 +88,7 @@ public class OsuImageService implements Service {
 
         map.remove(senderId);
         bot.sendMessage(groupId, Message.at(senderId)
-                .append(" " + this.mutsumi.getName() + " 正在化身P图大手子处理图片……"));
+                .append(" " + this.mutsumi.getName() + " 正在使用神秘技术处理图片……"));
         byte[] result = GreekBackgroundGenerator.addGreek(image.getData(),
                 greekInfo.greek, greekInfo.chromaticAberration, greekInfo.glitch);
         bot.sendMessage(groupId, Message.at(senderId).append(Message.image(result)));
