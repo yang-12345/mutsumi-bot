@@ -1,5 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi.osuImage;
 
+import io.github.rikkakawaii0612.mutsumi.api.Mutsumi;
 import io.github.rikkakawaii0612.mutsumi.api.Service;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceLookup;
 import io.github.rikkakawaii0612.mutsumi.api.contact.Group;
@@ -7,6 +8,7 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.Member;
 import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Image;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
+import io.github.rikkakawaii0612.mutsumi.api.util.Pair;
 import io.github.rikkakawaii0612.mutsumi.api.util.command.CommandMatcher;
 import io.github.rikkakawaii0612.mutsumi.osuImage.util.GreekBackgroundGenerator;
 import org.slf4j.Logger;
@@ -21,13 +23,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class OsuImageService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuImageService");
+
+    private Mutsumi mutsumi;
     private final Object lock = new Object();
 
     private final Map<Long, Map<Long, GreekInfo>> listeningInfos = new ConcurrentHashMap<>();
 
     @Override
     public void load(String id, ServiceLookup lookup) {
-        lookup.getMutsumi().getBotBus().addMessageHandler(this::onHandleMessage);
+        this.mutsumi = lookup.getMutsumi();
+        this.mutsumi.getBotBus().addMessageHandler(this::onHandleMessage);
         loadFont("assets/fonts/Torus-Light.otf");
         loadFont("assets/fonts/Torus-Regular.otf");
         loadFont("assets/fonts/Torus-SemiBold.otf");
@@ -85,7 +90,10 @@ public class OsuImageService implements Service {
         }
 
         map.remove(senderId);
-        byte[] result = GreekBackgroundGenerator.addGreek(image.getData(), greekInfo.greek);
+        bot.sendMessage(groupId, Message.at(senderId)
+                .append(" " + this.mutsumi.getName() + " 正在化身P图大手子处理图片……"));
+        byte[] result = GreekBackgroundGenerator.addGreek(image.getData(),
+                greekInfo.greek, greekInfo.chromaticAberration, greekInfo.glitch);
         bot.sendMessage(groupId, Message.at(senderId).append(Message.image(result)));
     }
 
@@ -94,19 +102,43 @@ public class OsuImageService implements Service {
         long senderId = sender.getId();
 
         String greek = result.getValue("greek", String.class);
-        byte[] greekImage = GreekBackgroundGenerator.getGreek(greek);
-        if (greekImage == null) {
+        Pair<byte[], GreekBackgroundGenerator.Param> pair = GreekBackgroundGenerator.getGreekInfo(greek);
+        if (pair == null) {
             bot.sendMessage(groupId, Message.at(senderId).append(" 暂时没有这个希腊字母。"));
             return;
+        }
+
+        Double chromaticAberration = result.getValue("chromaticAberration", Double.class);
+        Double glitch = result.getValue("glitch", Double.class);
+        GreekInfo greekInfo;
+        long l = System.nanoTime();
+        if (chromaticAberration != null && glitch != null) {
+            if (chromaticAberration < 0.0D) {
+                bot.sendMessage(groupId, Message.at(senderId).append("色差程度不能为负。"));
+                return;
+            }
+            if (glitch < 0.0D) {
+                bot.sendMessage(groupId, Message.at(senderId).append("故障程度不能为负。"));
+                return;
+            }
+            if (chromaticAberration > 100.0D || glitch > 100.0D) {
+                bot.sendMessage(groupId, Message.at(senderId).append("参数过大。"));
+                return;
+            }
+            greekInfo = new GreekInfo(l, pair.left(), chromaticAberration, glitch);
+        } else {
+            GreekBackgroundGenerator.Param param = pair.right();
+            greekInfo = new GreekInfo(l, pair.left(), param.chromaticAberration(), param.glitch());
         }
 
         if (!this.listeningInfos.containsKey(groupId)) {
             this.listeningInfos.put(groupId, new ConcurrentHashMap<>());
         }
+        this.listeningInfos.get(groupId).put(senderId, greekInfo);
 
-        this.listeningInfos.get(groupId).put(senderId, new GreekInfo(System.nanoTime(), greekImage));
         bot.sendMessage(groupId, Message.at(senderId)
-                .append(" 已发送希腊字母 " + greek + " 图片生成请求！请在 30 秒内发送你要生成的图片。" +
+                .append(" 已发送希腊字母 " + greek + " 图片生成请求！请在 30 秒内发送你要处理的图片。" +
+                        "\n色差程度：" + greekInfo.chromaticAberration + " 故障程度：" + greekInfo.glitch +
                         "\n超时的请求会被自动忽略。"));
     }
 
@@ -124,6 +156,6 @@ public class OsuImageService implements Service {
         }
     }
 
-    record GreekInfo(long time, byte[] greek) {
+    record GreekInfo(long time, byte[] greek, double chromaticAberration, double glitch) {
     }
 }
