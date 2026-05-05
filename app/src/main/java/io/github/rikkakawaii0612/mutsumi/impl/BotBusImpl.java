@@ -14,10 +14,17 @@ import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.BotOfflineEvent;
 import net.mamoe.mirai.event.events.BotOnlineEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
+import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.PlainText;
+import net.mamoe.mirai.utils.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,6 +86,33 @@ public class BotBusImpl implements BotBus {
             switch (singleMessage) {
                 case PlainText v -> builder.append(Message.text(v.contentToString()));
                 case At v -> builder.append(Message.at(v.getTarget()));
+                case Image v -> {
+                    String str = Image.queryUrl(v);
+                    URL url;
+                    try {
+                        url = URI.create(Image.queryUrl(v)).toURL();
+                    } catch (MalformedURLException e) {
+                        LOGGER.warn("Failed to resolve URL '{}': ", str, e);
+                        return;
+                    }
+
+                    builder.append(new io.github.rikkakawaii0612.mutsumi.api.contact.message.Image() {
+                        private byte[] cache;
+
+                        @Override
+                        public byte[] getData() {
+                            if (this.cache != null) {
+                                return this.cache;
+                            }
+                            try (ExternalResource resource = ExternalResource.create(url.openStream())) {
+                                this.cache = resource.inputStream().readAllBytes();
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                            return new byte[0];
+                        }
+                        });
+                }
                 default -> {}
             }
         });
