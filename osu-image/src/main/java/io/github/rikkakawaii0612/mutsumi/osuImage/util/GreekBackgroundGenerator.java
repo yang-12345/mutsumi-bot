@@ -29,7 +29,7 @@ public class GreekBackgroundGenerator {
         Canvas canvas = new Canvas((int) bw, (int) bh);
         canvas.addElement(0, 0, bgImage);
         canvas.addElement((int) ((bw - w) / 2.0D), (int) ((bh - h) / 2.0D), greekImage);
-        canvas.setGlitch(30.0D);
+        canvas.setGlitch(20.0D);
         int i = (int) Math.min(bw / 100.0D, bh / 100.0D);
         canvas.setChromaticAberration(i, i, 0, 0, -i, -i);
         return canvas.render();
