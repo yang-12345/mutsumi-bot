@@ -13,12 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class OsuImageService implements Service {
@@ -49,7 +47,7 @@ public class OsuImageService implements Service {
         });
         if (!images.isEmpty()) {
             if (images.size() == 1) {
-                this.handleImage(bot, group, sender, images.getFirst().getData());
+                this.handleImage(bot, group, sender, images.getFirst());
             }
             return; // 有图片就不可能匹配指令了
         }
@@ -68,7 +66,7 @@ public class OsuImageService implements Service {
         }
     }
 
-    private void handleImage(MutsumiBot bot, Group group, Member sender, byte[] image) {
+    private void handleImage(MutsumiBot bot, Group group, Member sender, Image image) {
         long groupId = group.getId();
         long senderId = sender.getId();
         if (!this.listeningInfos.containsKey(groupId)) {
@@ -87,7 +85,7 @@ public class OsuImageService implements Service {
         }
 
         map.remove(senderId);
-        byte[] result = GreekBackgroundGenerator.addGreek(image, greekInfo.greek);
+        byte[] result = GreekBackgroundGenerator.addGreek(image.getData(), greekInfo.greek);
         bot.sendMessage(groupId, Message.at(senderId).append(Message.image(result)));
     }
 

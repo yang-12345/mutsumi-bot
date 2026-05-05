@@ -10,7 +10,7 @@ public class CommandMatchers {
     static {
         GREEK = new CommandMatcher(literalIgnoreCase("greek")
                 .then(space()
-                        .then(stringVarWithoutSpace("greek")
+                        .then(stringVar("greek")
                                 .complete()))
                 .build());
     }
