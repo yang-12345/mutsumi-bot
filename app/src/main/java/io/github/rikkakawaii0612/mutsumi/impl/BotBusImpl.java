@@ -109,9 +109,9 @@ public class BotBusImpl implements BotBus {
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
-                            return new byte[0];
+                            return this.cache;
                         }
-                        });
+                    });
                 }
                 default -> {}
             }
