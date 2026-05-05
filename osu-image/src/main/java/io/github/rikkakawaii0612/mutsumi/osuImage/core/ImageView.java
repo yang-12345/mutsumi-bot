@@ -1,14 +1,15 @@
 package io.github.rikkakawaii0612.mutsumi.osuImage.core;
 
 import io.github.rikkakawaii0612.mutsumi.osuImage.util.ImageUtil;
-import org.apache.commons.imaging.ImageReadException;
-import org.apache.commons.imaging.Imaging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -25,12 +26,7 @@ public class ImageView extends AbstractElement {
 
     public ImageView(URL url) {
         try (InputStream is = url.openStream()) {
-            BufferedImage image = ImageUtil.readImage(is);
-            if (image != null) {
-                this.image = image;
-            } else {
-                throw new IOException("image is null");
-            }
+            this.readImage(is);
         } catch (IOException e) {
             LOGGER.warn("Failed to read image from url '{}': ", url, e);
             this.image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
@@ -44,12 +40,14 @@ public class ImageView extends AbstractElement {
             return;
         }
 
-        // 不要使用 ImageIO.read(), 这会在 JVM 线程上占用图片资源, 导致无法卸载服务
-        BufferedImage image = ImageUtil.readImage(inputStream);
-        if (image != null) {
-            this.image = image;
-        } else {
-            LOGGER.warn("Failed to read image from input stream {}", inputStream.getClass().getName());
+        this.readImage(inputStream);
+    }
+
+    public ImageView(byte[] arr) {
+        try (ByteArrayInputStream is = new ByteArrayInputStream(arr)) {
+            this.readImage(is);
+        } catch (IOException e) {
+            LOGGER.warn("Failed to read image from byte array");
             this.image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         }
     }
@@ -60,6 +58,17 @@ public class ImageView extends AbstractElement {
 
     public ImageView() {
         this.image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+    }
+
+    private void readImage(InputStream is) {
+        // 不要使用 ImageIO.read(), 这会在 JVM 线程上占用图片资源, 导致无法卸载服务
+        BufferedImage image = ImageUtil.readImage(is);
+        if (image != null) {
+            this.image = image;
+        } else {
+            LOGGER.warn("Failed to read image from input stream {}", is.getClass().getName());
+            this.image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        }
     }
 
     @Override
@@ -132,5 +141,14 @@ public class ImageView extends AbstractElement {
 
     public ImageView copySource() {
         return new ImageView(this.image);
+    }
+
+    public byte[] toByteArray() {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            ImageIO.write(this.image, "png", byteArrayOutputStream);
+            return byteArrayOutputStream.toByteArray();
+        } catch (IOException e) {
+            return new byte[0];
+        }
     }
 }
