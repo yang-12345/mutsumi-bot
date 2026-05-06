@@ -27,6 +27,10 @@ public class CachedURLImage implements Image {
         this.url = url;
     }
 
+    public URL getUrl() {
+        return this.url;
+    }
+
     @Override
     public byte[] getData() {
         if (this.cache != null) {
