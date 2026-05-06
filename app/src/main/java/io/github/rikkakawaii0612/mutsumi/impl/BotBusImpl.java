@@ -7,6 +7,7 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.Member;
 import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
 import io.github.rikkakawaii0612.mutsumi.api.contact.handler.MessageHandler;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.At;
+import io.github.rikkakawaii0612.mutsumi.api.contact.message.CachedURLImage;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.MessageChain;
 import net.mamoe.mirai.Bot;
@@ -90,30 +91,11 @@ public class BotBusImpl implements BotBus {
                 case At v -> builder.append(Message.at(v.getTarget()));
                 case Image v -> {
                     String str = Image.queryUrl(v);
-                    URL url;
                     try {
-                        url = URI.create(Image.queryUrl(v)).toURL();
+                        builder.append(new CachedURLImage(str));
                     } catch (MalformedURLException e) {
                         LOGGER.warn("Failed to resolve URL '{}': ", str, e);
-                        return;
                     }
-
-                    builder.append(new io.github.rikkakawaii0612.mutsumi.api.contact.message.Image() {
-                        private byte[] cache;
-
-                        @Override
-                        public byte[] getData() {
-                            if (this.cache != null) {
-                                return this.cache;
-                            }
-                            try (ExternalResource resource = ExternalResource.create(url.openStream())) {
-                                this.cache = resource.inputStream().readAllBytes();
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                            return this.cache;
-                        }
-                    });
                 }
                 default -> {
                 }
