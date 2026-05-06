@@ -3,6 +3,7 @@ package io.github.rikkakawaii0612.mutsumi.api.contact.message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -31,8 +32,15 @@ public class CachedURLImage implements Image {
         if (this.cache != null) {
             return this.cache;
         }
+        // 分批次读取数据
         try (InputStream is = this.url.openStream()) {
-            this.cache = is.readAllBytes();
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            byte[] data = new byte[8192];
+            int nRead;
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            this.cache = buffer.toByteArray();
         } catch (IOException e) {
             LOGGER.error("Exception in reading image data: ", e);
         }
