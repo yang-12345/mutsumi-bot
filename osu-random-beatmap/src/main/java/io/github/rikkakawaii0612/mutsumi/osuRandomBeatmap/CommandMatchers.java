@@ -1,7 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap;
 
 import io.github.rikkakawaii0612.mutsumi.api.util.command.CommandMatcher;
-import io.github.rikkakawaii0612.mutsumi.api.util.math.DoubleRange;
 
 import static io.github.rikkakawaii0612.mutsumi.api.util.command.NodeBuilder.*;
 

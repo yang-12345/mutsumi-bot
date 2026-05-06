@@ -8,7 +8,8 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.Member;
 import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
 import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import io.github.rikkakawaii0612.mutsumi.api.util.command.CommandMatcher;
-import io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap.beatmap.*;
+import io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap.beatmap.Generator;
+import io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap.beatmap.Generators;
 
 import java.util.Arrays;
 import java.util.Map;

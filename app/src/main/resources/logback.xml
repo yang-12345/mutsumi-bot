@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <conversionRule conversionWord="customColor" converterClass="io.github.rikkakawaii0612.mutsumi.util.LoggerColorConverter"/>
+    <conversionRule conversionWord="customColor"
+                    converterClass="io.github.rikkakawaii0612.mutsumi.util.LoggerColorConverter"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

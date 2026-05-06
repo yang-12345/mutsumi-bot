@@ -55,7 +55,7 @@ public class IOCache {
     }
 
     public static BufferedImage getBeatmapsetCover(Beatmapset beatmapset) {
-        Optional<BufferedImage> optional =  BEATMAP_BACKGROUNDS.cache(beatmapset.id, () -> {
+        Optional<BufferedImage> optional = BEATMAP_BACKGROUNDS.cache(beatmapset.id, () -> {
             String str = String.valueOf(beatmapset.id);
             BufferedImage bufferedImage = readFromDisk("beatmaps", str);
             if (bufferedImage != null) {

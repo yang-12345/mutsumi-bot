@@ -2,7 +2,10 @@ package io.github.rikkakawaii0612.mutsumi.osuRandomBeatmap.beatmap;
 
 import io.github.rikkakawaii0612.mutsumi.api.util.math.MathUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Random;
 
 public class JackGenerator extends Generator {
     private static final List<Integer> COLUMNS = List.of(0, 1, 2, 3);

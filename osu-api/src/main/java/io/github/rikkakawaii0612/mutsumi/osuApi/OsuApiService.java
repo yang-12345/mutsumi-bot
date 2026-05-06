@@ -223,7 +223,8 @@ public class OsuApiService implements Service {
 
         try {
             List<Beatmap> list = this.objectMapper.readValue(optional.get().get("beatmaps").toString(),
-                    new TypeReference<>() {});
+                    new TypeReference<>() {
+                    });
             return Optional.of(list);
         } catch (Exception e) {
             LOGGER.warn("Failed to resolve List<Beatmap>: ", e);
@@ -281,7 +282,8 @@ public class OsuApiService implements Service {
 
         try {
             List<Score> list = this.objectMapper.readValue(optional.get().get("scores").toString(),
-                    new TypeReference<>() {});
+                    new TypeReference<>() {
+                    });
             return Optional.of(list);
         } catch (Exception e) {
             LOGGER.warn("Failed to resolve List<BeatmapUserScore>: ", e);

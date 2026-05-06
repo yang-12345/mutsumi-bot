@@ -15,7 +15,7 @@ public class GreekBackgroundGenerator {
     /**
      * 给背景图添加神秘希腊字母.
      *
-     * @param bg 背景图, 以字节数组形式存储
+     * @param bg    背景图, 以字节数组形式存储
      * @param greek 希腊字母透明图, 以字节数组形式存储
      * @return 结果, 以字节数组形式存储
      */

@@ -1,12 +1,12 @@
 package io.github.rikkakawaii0612.mutsumi.osuImage.core.osu;
 
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.User;
-import io.github.rikkakawaii0612.mutsumi.osuImage.core.*;
+import io.github.rikkakawaii0612.mutsumi.osuImage.core.Group;
+import io.github.rikkakawaii0612.mutsumi.osuImage.core.ImageView;
 import io.github.rikkakawaii0612.mutsumi.osuImage.core.Rectangle;
+import io.github.rikkakawaii0612.mutsumi.osuImage.core.Text;
 import io.github.rikkakawaii0612.mutsumi.osuImage.util.ARGB;
 import io.github.rikkakawaii0612.mutsumi.osuImage.util.IOCache;
-
-import java.awt.*;
 
 public class UserCard extends Group {
     private static final int BACKGROUND = ARGB.toArgb(68, 60, 54);

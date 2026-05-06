@@ -2,15 +2,14 @@ package io.github.rikkakawaii0612.mutsumi.osuApi.data;
 
 import com.fasterxml.jackson.annotation.*;
 import io.github.rikkakawaii0612.mutsumi.api.util.DuplicatableObjectIdResolver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Beatmapset {@JsonProperty("id")
+public class Beatmapset {
+    @JsonProperty("id")
     public long id = 0L;
 
     @JsonProperty("artist")

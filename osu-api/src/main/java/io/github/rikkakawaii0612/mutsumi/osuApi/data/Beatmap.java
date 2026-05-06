@@ -2,8 +2,6 @@ package io.github.rikkakawaii0612.mutsumi.osuApi.data;
 
 import com.fasterxml.jackson.annotation.*;
 import io.github.rikkakawaii0612.mutsumi.api.util.DuplicatableObjectIdResolver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonInclude(JsonInclude.Include.NON_NULL)

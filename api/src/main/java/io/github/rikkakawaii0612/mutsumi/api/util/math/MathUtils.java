@@ -9,7 +9,7 @@ public class MathUtils {
      * 若存在循环依赖关系 (如 A 依赖 B, B 依赖 A), 则抛出异常.
      * 哦对这个是 Deepseek 写的, 我其实没时间设计算法 (
      *
-     * @param values 要排序的集合
+     * @param values       要排序的集合
      * @param dependencies 对象的依赖关系, 是一个 对象 -> 依赖对象集 的映射
      * @return 排序结果
      * @throws IllegalArgumentException 若存在循环依赖关系

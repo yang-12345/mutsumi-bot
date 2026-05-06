@@ -11,17 +11,14 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.message.Text;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.BotIsBeingMutedException;
 import net.mamoe.mirai.contact.MessageTooLargeException;
-import net.mamoe.mirai.contact.file.AbsoluteFile;
 import net.mamoe.mirai.event.events.EventCancelledException;
 import net.mamoe.mirai.message.data.MessageChainBuilder;
 import net.mamoe.mirai.message.data.MessageUtils;
 import net.mamoe.mirai.utils.ExternalResource;
-import net.mamoe.mirai.utils.RemoteFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 

@@ -1,8 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi.osuApi.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BeatmapPlayCount {
     @JsonProperty("beatmap_id")

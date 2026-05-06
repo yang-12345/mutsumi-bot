@@ -124,7 +124,7 @@ public class GuessService implements Service {
         Random random = new Random();
         List<Beatmap> beatmaps = new ArrayList<>();
 
-        for (int i = 0; i < size && !bestScores.isEmpty();) {
+        for (int i = 0; i < size && !bestScores.isEmpty(); ) {
             Score score = bestScores.remove(random.nextInt(bestScores.size()));
             Beatmap beatmap = score.beatmap;
             beatmap.beatmapset = score.beatmapset;

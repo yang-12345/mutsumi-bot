@@ -8,7 +8,7 @@ public class DoubleRange {
         this.min = min;
         this.max = max;
     }
-    
+
     public boolean matches(double value) {
         return this.min <= value && value <= this.max;
     }

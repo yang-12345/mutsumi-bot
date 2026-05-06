@@ -59,6 +59,7 @@ public class BotLogger implements MiraiLogger {
         return false;
 
     }
+
     @Override
     public boolean isWarningEnabled() {
         return true;

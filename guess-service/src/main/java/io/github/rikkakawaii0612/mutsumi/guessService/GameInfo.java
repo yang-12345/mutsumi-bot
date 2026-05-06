@@ -6,8 +6,8 @@ import io.github.rikkakawaii0612.mutsumi.osuApi.data.PlayMode;
 import io.github.rikkakawaii0612.mutsumi.osuApi.data.User;
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
-import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 import java.util.*;
@@ -186,7 +186,6 @@ public class GameInfo {
     public void decrypt(int index) {
         this.decrypted.set(index, true);
     }
-
 
 
     static {

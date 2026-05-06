@@ -17,8 +17,8 @@ public class NodeBuilder {
     private final List<NodeBuilder> children;
 
     public NodeBuilder(String name,
-                 Function<String, Boolean> matcher,
-                 Function<String, Optional<?>> getter) {
+                       Function<String, Boolean> matcher,
+                       Function<String, Optional<?>> getter) {
         this.name = name;
         this.matcher = matcher;
         this.getter = getter;
@@ -87,7 +87,7 @@ public class NodeBuilder {
     /**
      * 匹配给定范围内的整型数据.
      *
-     * @param name 参数名
+     * @param name  参数名
      * @param range 范围
      */
     public static NodeBuilder intVar(String name, IntRange range) {
@@ -112,7 +112,7 @@ public class NodeBuilder {
     /**
      * 匹配给定范围内的长整型数据.
      *
-     * @param name 参数名
+     * @param name  参数名
      * @param range 范围
      */
     public static NodeBuilder longVar(String name, LongRange range) {
@@ -137,7 +137,7 @@ public class NodeBuilder {
     /**
      * 匹配给定范围内的双精度浮点型数据.
      *
-     * @param name 参数名
+     * @param name  参数名
      * @param range 范围
      */
     public static NodeBuilder doubleVar(String name, DoubleRange range) {

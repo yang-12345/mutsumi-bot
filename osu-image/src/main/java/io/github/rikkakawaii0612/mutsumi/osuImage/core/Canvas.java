@@ -110,19 +110,19 @@ public class Canvas {
     /**
      * 应用色差效果（RGB通道独立偏移，Alpha保持不变）
      *
-     * @param src           原始图像（支持 ARGB 或 RGB）
-     * @param offsetRX      红色通道水平偏移（正：向右，负：向左）
-     * @param offsetRY      红色通道垂直偏移（正：向下，负：向上）
-     * @param offsetGX      绿色通道水平偏移
-     * @param offsetGY      绿色通道垂直偏移
-     * @param offsetBX      蓝色通道水平偏移
-     * @param offsetBY      蓝色通道垂直偏移
-     * @return              处理后的图像（类型与原图相同）
+     * @param src      原始图像（支持 ARGB 或 RGB）
+     * @param offsetRX 红色通道水平偏移（正：向右，负：向左）
+     * @param offsetRY 红色通道垂直偏移（正：向下，负：向上）
+     * @param offsetGX 绿色通道水平偏移
+     * @param offsetGY 绿色通道垂直偏移
+     * @param offsetBX 蓝色通道水平偏移
+     * @param offsetBY 蓝色通道垂直偏移
+     * @return 处理后的图像（类型与原图相同）
      */
     private static BufferedImage applyChromaticAberration(BufferedImage src,
-                                                         int offsetRX, int offsetRY,
-                                                         int offsetGX, int offsetGY,
-                                                         int offsetBX, int offsetBY) {
+                                                          int offsetRX, int offsetRY,
+                                                          int offsetGX, int offsetGY,
+                                                          int offsetBX, int offsetBY) {
         int width = src.getWidth();
         int height = src.getHeight();
 
