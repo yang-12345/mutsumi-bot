@@ -2,6 +2,7 @@ package io.github.rikkakawaii0612.mutsumi;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.rikkakawaii0612.mutsumi.impl.MutsumiImpl;
+import io.github.rikkakawaii0612.mutsumi.panel.ServerPanel;
 import io.github.rikkakawaii0612.mutsumi.util.BotLogger;
 import net.mamoe.mirai.utils.BotConfiguration;
 import org.slf4j.Logger;
@@ -28,6 +29,12 @@ public class Main {
         Thread consoleThread = new Thread(Main::onConsoleThread);
         consoleThread.setDaemon(true);
         consoleThread.start();
+
+        try {
+            ServerPanel.start(8612);
+        } catch (Exception e) {
+            LOGGER.error("Failed to create server panel: ", e);
+        }
 
         //TODO: 多账号登录
         JsonNode jsonNode = mutsumi.getConfig().getOrCreate("mutsumi");

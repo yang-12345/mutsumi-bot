@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>QQ机器人管理面板</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<h1>群聊消息监控</h1>
+<div id="msgList" style="height:300px; overflow:auto; border:1px solid #ccc;"></div>
+
+<h2>发送消息</h2>
+<input type="text" id="groupId" placeholder="群号">
+<input type="text" id="sendMsg" placeholder="消息内容">
+<button onclick="sendMessage()">发送</button>
+
+<h2>插件管理</h2>
+<ul id="pluginList"></ul>
+<button onclick="reloadPlugins()">热重载所有插件</button>
+
+<script>
+    // 1. WebSocket 接收实时消息
+    var ws = new WebSocket("ws://localhost:8080/ws/groupMsg");
+    ws.onmessage = function(event) {
+        var msg = JSON.parse(event.data);
+        $("#msgList").prepend("<div><b>" + msg.fromUser + "</b> (" + msg.fromGroup + "): " + msg.content + "</div>");
+    };
+
+    // 2. 发送消息 API
+    function sendMessage() {
+        var groupId = $("#groupId").val();
+        var message = $("#sendMsg").val();
+        $.post("/api/sendGroupMsg", JSON.stringify({groupId: groupId, message: message}), function(res) {
+            if(res.success) alert("发送成功");
+            else alert("发送失败");
+        });
+    }
+
+    // 3. 加载插件列表
+    function loadPlugins() {
+        $.get("/api/plugins", function(plugins) {
+            var html = "";
+            plugins.forEach(p => {
+                html += "<li>" + p.name + " - " + (p.enabled ? "启用" : "禁用") +
+                        " <button onclick='togglePlugin(\"" + p.id + "\", " + !p.enabled + ")'>切换</button></li>";
+            });
+            $("#pluginList").html(html);
+        });
+    }
+
+    function reloadPlugins() {
+        $.post("/api/plugins/reload", function() {
+            alert("重载完成");
+            loadPlugins();
+        });
+    }
+
+    $(function() {
+        loadPlugins();
+    });
+</script>
+</body>
+</html>
