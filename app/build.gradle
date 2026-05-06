@@ -24,6 +24,11 @@ dependencies {
     // Mirai & Overflow: QQ Bot Api
     implementation 'top.mrxiaom.mirai:overflow-core:1.1.0'
 
+    // Server Panel
+    implementation 'org.eclipse.jetty:jetty-server:9.4.53.v20231009'
+    implementation 'org.eclipse.jetty:jetty-servlet:9.4.53.v20231009'
+    implementation 'org.eclipse.jetty.websocket:javax-websocket-server-impl:9.4.53.v20231009'
+
     implementation project(':api')
 }
 
