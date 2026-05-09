@@ -24,9 +24,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class OsuImageService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuImageService");
+    private static final String[] MESSAGES = {
+            "%s 正在使用神秘技术处理图片……",
+            "%s 正在发挥超绝 P 图技艺……",
+            "%s 正在给收到的图片增添光彩……",
+            "%s 已收到你的答复。正在动用算力……",
+            "%s 正在接入 <希腊字母 API>……"
+    };
 
     private Mutsumi mutsumi;
 
@@ -106,8 +114,9 @@ public class OsuImageService implements Service {
         }
 
         map.remove(senderId);
+        String m = MESSAGES[ThreadLocalRandom.current().nextInt(MESSAGES.length)];
         bot.sendMessage(groupId, Message.at(senderId)
-                .append(" " + this.mutsumi.getName() + " 正在使用神秘技术处理图片……"));
+                .append(" " + String.format(m, this.mutsumi.getName())));
         byte[] result = GreekBackgroundGenerator.addGreek(image.getData(),
                 greekInfo.greek, greekInfo.chromaticAberration, greekInfo.glitch);
         bot.sendMessage(groupId, Message.at(senderId).append(Message.image(result)));
