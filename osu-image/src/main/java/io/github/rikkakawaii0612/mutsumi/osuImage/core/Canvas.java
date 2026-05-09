@@ -1,5 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi.osuImage.core;
 
+import io.github.rikkakawaii0612.mutsumi.osuImage.util.ARGB;
 import io.github.rikkakawaii0612.mutsumi.osuImage.util.Reference;
 
 import javax.imageio.ImageIO;
@@ -221,12 +222,15 @@ public class Canvas {
         }
 
         // 添加“噪点”和“条纹”
-//        for (int i = 0; i < width * height / 300 * gl; i++) {
-//            int x = random.nextInt(width);
-//            int y = random.nextInt(height);
-//            // 生成随机颜色，造成“像素损坏”的感觉
-//            dst.setRGB(x, y, new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256)).getRGB());
-//        }
+        for (int i = 0; i < width * height * glitch / 600.0D; i++) {
+            int x = random.nextInt(width);
+            int y = random.nextInt(height);
+            // 生成随机颜色，造成“像素损坏”的感觉
+            int rgb = dst.getRGB(x, y);
+            int r = 7 * ARGB.red(rgb), g = 7 * ARGB.green(rgb), b = 7 * ARGB.blue(rgb);
+            int rx = random.nextInt(256), gx = random.nextInt(256), bx = random.nextInt(256);
+            dst.setRGB(x, y, ARGB.toArgb((r + rx) / 8, (g + gx) / 8, (b + bx) / 8, ARGB.alpha(rgb)));
+        }
         return dst;
     }
 }
