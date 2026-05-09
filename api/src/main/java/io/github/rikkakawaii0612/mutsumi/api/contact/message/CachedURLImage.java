@@ -1,5 +1,7 @@
 package io.github.rikkakawaii0612.mutsumi.api.contact.message;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,10 +21,11 @@ public class CachedURLImage implements Image {
     private final URL url;
     private byte[] cache;
 
+    @JsonCreator
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public CachedURLImage(String url) throws MalformedURLException {
         this.url = URI.create(url).toURL();
     }
-
     public CachedURLImage(URL url) {
         this.url = url;
     }

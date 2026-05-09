@@ -13,16 +13,16 @@ public interface Message {
         return this.append(text(text));
     }
 
-    static Text text(String text) {
-        return () -> text;
+    static Text text(String content) {
+        return new Text(content);
     }
 
     static At at(long target) {
-        return () -> target;
+        return new At(target);
     }
 
-    static Image image(byte[] data) {
-        return () -> data;
+    static ByteArrayImage image(byte[] data) {
+        return new ByteArrayImage(data);
     }
 
     interface Visitor {

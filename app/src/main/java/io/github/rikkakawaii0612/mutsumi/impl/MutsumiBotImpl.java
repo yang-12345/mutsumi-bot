@@ -44,8 +44,8 @@ public class MutsumiBotImpl implements MutsumiBot {
         MessageChainBuilder builder = new MessageChainBuilder();
         message.visit(m -> {
             switch (m) {
-                case At at -> builder.append(new net.mamoe.mirai.message.data.At(at.getTarget()));
-                case Text text -> builder.append(text.getText());
+                case At at -> builder.append(new net.mamoe.mirai.message.data.At(at.target()));
+                case Text text -> builder.append(text.content());
                 case Image image -> {
                     try (ByteArrayInputStream is = new ByteArrayInputStream(image.getData());
                          ExternalResource er = ExternalResource.create(is)) {

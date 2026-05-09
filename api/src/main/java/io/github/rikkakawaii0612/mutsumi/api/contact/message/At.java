@@ -1,10 +1,8 @@
 package io.github.rikkakawaii0612.mutsumi.api.contact.message;
 
-public interface At extends SingleMessage {
-    long getTarget();
-
+public record At(long target) implements SingleMessage {
     @Override
-    default String asString() {
-        return "@" + this.getTarget();
+    public String asString() {
+        return "@" + this.target();
     }
 }

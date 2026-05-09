@@ -221,12 +221,12 @@ public class Canvas {
         }
 
         // 添加“噪点”和“条纹”
-        for (int i = 0; i < width * height / 300; i++) {
-            int x = random.nextInt(width);
-            int y = random.nextInt(height);
-            // 生成随机颜色，造成“像素损坏”的感觉
-            dst.setRGB(x, y, new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256)).getRGB());
-        }
+//        for (int i = 0; i < width * height / 300 * gl; i++) {
+//            int x = random.nextInt(width);
+//            int y = random.nextInt(height);
+//            // 生成随机颜色，造成“像素损坏”的感觉
+//            dst.setRGB(x, y, new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256)).getRGB());
+//        }
         return dst;
     }
 }

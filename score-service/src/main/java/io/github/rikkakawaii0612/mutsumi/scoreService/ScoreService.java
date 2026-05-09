@@ -34,7 +34,7 @@ public class ScoreService implements Service {
         this.osuApiService = (OsuApiService) lookup.getService("osu-api").service();
         this.imageServiceLoaded = lookup.hasService("osu-image");
         if (!this.imageServiceLoaded) {
-            LOGGER.info("Service '{}' didn't find service 'osu-image'. All message will be sent as literal text", id);
+            LOGGER.info("Service '{}' didn't find service 'osu-image'. All message will be sent as literal content", id);
         }
         lookup.getMutsumi().getBotBus().addMessageHandler(this::onHandleMessage);
     }
