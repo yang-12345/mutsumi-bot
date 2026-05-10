@@ -178,21 +178,54 @@ public class NodeBuilder {
             if (!param.startsWith("\"")) {
                 return !param.contains(" ");
             } else {
-                for (int i = 1; i < param.length(); i++) {
-                    if (param.charAt(i) == '"' && param.charAt(i - 1) != '\\') {
-                        return i == param.length() - 1;
+                if (param.length() == 1 || !param.endsWith("\"")) {
+                    return false;
+                }
+                int count = 0;
+                for (int i = param.length() - 1; i >= 1; i--) {
+                    if (param.charAt(i) == '\\') {
+                        count++;
+                    } else {
+                        break;
                     }
                 }
-                return false;
+                return count % 2 == 0;
             }
         }, param -> {
             if (!param.startsWith("\"")) {
                 return Optional.of(param);
             } else {
-                return Optional.of(param.substring(1, param.length() - 1)
-                        .replaceAll("\\\\\"", "\""));
+                return Optional.of(unescape(param.substring(1, param.length() - 1)));
             }
         });
+    }
+
+    /**
+     * 用于解析转义字符串.
+     * By DeepSeek
+     */
+    private static String unescape(String param) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < param.length(); i++) {
+            char c = param.charAt(i);
+            if (c == '\\' && i + 1 < param.length()) {
+                char next = param.charAt(i + 1);
+                if (next == '\\') {          // 将 \\ 替换为 \
+                    builder.append('\\');
+                    i++;                     // 跳过下一个字符
+                } else if (next == '"') {    // 将 \" 替换为 "
+                    builder.append('"');
+                    i++;
+                } else {
+                    // 其他情况保留反斜杠，下一个字符在下次循环正常处理
+                    builder.append('\\');
+                    // 不跳过下一个字符，让循环自然处理它
+                }
+            } else {
+                builder.append(c);
+            }
+        }
+        return builder.toString();
     }
 
     /**
