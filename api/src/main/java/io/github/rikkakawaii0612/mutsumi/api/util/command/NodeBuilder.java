@@ -174,7 +174,25 @@ public class NodeBuilder {
      * @param name 参数名
      */
     public static NodeBuilder stringVarWithoutSpace(String name) {
-        return new NodeBuilder(name, param -> !param.contains(" "), Optional::of);
+        return new NodeBuilder(name, param -> {
+            if (!param.startsWith("\"")) {
+                return !param.contains(" ");
+            } else {
+                for (int i = 1; i < param.length(); i++) {
+                    if (param.charAt(i) == '"' && param.charAt(i - 1) != '\\') {
+                        return i == param.length() - 1;
+                    }
+                }
+                return false;
+            }
+        }, param -> {
+            if (!param.startsWith("\"")) {
+                return Optional.of(param);
+            } else {
+                return Optional.of(param.substring(1, param.length() - 1)
+                        .replaceAll("\\\\\"", "\""));
+            }
+        });
     }
 
     /**
