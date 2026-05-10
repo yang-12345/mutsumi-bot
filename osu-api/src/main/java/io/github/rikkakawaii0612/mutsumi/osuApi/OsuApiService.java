@@ -102,7 +102,7 @@ public class OsuApiService implements Service {
             return Optional.empty();
         }
 
-        String str = URLEncoder.encode(username, StandardCharsets.UTF_8);
+        String str = URLEncoder.encode(username, StandardCharsets.UTF_8).replace("+", "%20");
         Optional<JsonNode> optional = this.post("users/" + str);
         if (optional.isEmpty()) {
             return Optional.empty();
@@ -122,7 +122,7 @@ public class OsuApiService implements Service {
             return Optional.empty();
         }
 
-        String str = URLEncoder.encode(username, StandardCharsets.UTF_8);
+        String str = URLEncoder.encode(username, StandardCharsets.UTF_8).replace("+", "%20");
         Optional<JsonNode> optional = this.post(String.format("users/%s/%s", str, playMode.getName()));
         if (optional.isEmpty()) {
             return Optional.empty();
