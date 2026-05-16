@@ -37,12 +37,12 @@ public class MutsumiBotImpl implements MutsumiBot {
 
         MessageChainBuilder builder = new MessageChainBuilder();
         // 用于辅助添加自称前后的空格
-        boolean[] afterAutonym = new boolean[1];
+        boolean[] addSpace = new boolean[1];
         message.visit(m -> {
             String str = m.asString();
-            if (afterAutonym[0] && !str.isEmpty()) {
-                afterAutonym[0] = false;
-                if (shouldAddSpace(str.charAt(0))) {
+            if (addSpace[0] && !str.isEmpty()) {
+                addSpace[0] = false;
+                if (Character.isLetterOrDigit(str.charAt(0))) {
                     builder.add(" ");
                 }
             }
@@ -59,13 +59,19 @@ public class MutsumiBotImpl implements MutsumiBot {
                     }
                 }
                 case Autonym autonym -> {
+                    String a = autonym.asString();
+                    if (a.isEmpty()) {
+                        break;
+                    }
                     String s = builder.asMessageChain().contentToString();
                     char c = s.charAt(s.length() - 1);
-                    if (shouldAddSpace(c)) {
+                    if (shouldAddSpace(a.charAt(0)) && Character.isLetterOrDigit(c)) {
                         builder.add(" ");
                     }
-                    builder.add(autonym.asString());
-                    afterAutonym[0] = true;
+                    builder.add(a);
+                    if (shouldAddSpace(a.charAt(a.length() - 1))) {
+                        addSpace[0] = true;
+                    }
                 }
                 default -> builder.append(str);
             }
