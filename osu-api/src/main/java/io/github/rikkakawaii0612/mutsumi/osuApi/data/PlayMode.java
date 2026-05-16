@@ -24,6 +24,16 @@ public enum PlayMode {
         return this.name;
     }
 
+    @Override
+    public String toString() {
+        return switch (this) {
+            case STANDARD -> "osu!";
+            case TAIKO -> "osu!taiko";
+            case CATCH -> "osu!catch";
+            case MANIA -> "osu!mania";
+        };
+    }
+
     /**
      * 匹配字符串并返回其对应的游戏模式 (忽略前后空白, 大小写).
      *
