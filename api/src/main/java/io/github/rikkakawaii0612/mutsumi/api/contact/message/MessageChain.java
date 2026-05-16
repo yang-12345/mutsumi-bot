@@ -26,8 +26,20 @@ public class MessageChain implements Message {
 
     public static MessageChain of(Message... messages) {
         List<SingleMessage> list = new ArrayList<>();
+        Text text = null;
         for (Message message : messages) {
-            message.visit(list::add);
+            if (message instanceof Text t) {
+                text = text == null ? t : Message.text(text.content() + t.content());
+            } else {
+                if (text != null) {
+                    list.add(text);
+                    text = null;
+                }
+                message.visit(list::add);
+            }
+        }
+        if (text != null) {
+            list.add(text);
         }
         return list.isEmpty() ? EMPTY : new MessageChain(List.copyOf(list));
     }
