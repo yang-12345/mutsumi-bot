@@ -17,6 +17,18 @@ public interface Message {
         return this.append(String.valueOf(text));
     }
 
+    default MessageChain append(boolean text) {
+        return this.append(String.valueOf(text));
+    }
+
+    default MessageChain append(byte text) {
+        return this.append(String.valueOf(text));
+    }
+
+    default MessageChain append(short text) {
+        return this.append(String.valueOf(text));
+    }
+
     default MessageChain append(int text) {
         return this.append(String.valueOf(text));
     }
@@ -25,7 +37,15 @@ public interface Message {
         return this.append(String.valueOf(text));
     }
 
+    default MessageChain append(float text) {
+        return this.append(String.valueOf(text));
+    }
+
     default MessageChain append(double text) {
+        return this.append(String.valueOf(text));
+    }
+
+    default MessageChain append(Object text) {
         return this.append(String.valueOf(text));
     }
 
