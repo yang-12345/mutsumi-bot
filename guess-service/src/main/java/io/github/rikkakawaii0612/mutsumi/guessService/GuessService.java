@@ -1,7 +1,6 @@
 package io.github.rikkakawaii0612.mutsumi.guessService;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.github.rikkakawaii0612.mutsumi.api.Mutsumi;
 import io.github.rikkakawaii0612.mutsumi.api.Service;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceLookup;
 import io.github.rikkakawaii0612.mutsumi.api.contact.Group;
@@ -21,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GuessService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("GuessService");
 
-    private Mutsumi mutsumi;
     private OsuApiService osuApiService;
 
     private final Map<Long, GameInfo> gameInfos = new ConcurrentHashMap<>();
@@ -32,7 +30,6 @@ public class GuessService implements Service {
 
     @Override
     public void load(String id, ServiceLookup lookup) {
-        this.mutsumi = lookup.getMutsumi();
         this.osuApiService = (OsuApiService) lookup.getService("osu-api").service();
         JsonNode config = lookup.getConfig().getOrCreate(id);
         AliasSystem.loadConfig(config);
@@ -81,20 +78,20 @@ public class GuessService implements Service {
     private void commandLetter(MutsumiBot bot, Group group, Member sender, CommandMatcher.Result params) {
         long groupId = group.getId();
         if (this.gameInfos.containsKey(groupId)) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 当前还有正在进行的开字母游戏。你可以用 /answer 来强制结束游戏。"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("当前还有正在进行的开字母游戏。你可以用 /answer 来强制结束游戏。"));
             return;
         }
 
         Integer integer = params.getValue("count", Integer.class);
         int size = integer != null ? integer : 10;
         if (size <= 0) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 那你猜什么啊。"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("那你猜什么啊。"));
             return;
         } else if (size > 20) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 猜这么多，" + this.mutsumi.getName() + " 会受不了的啦！"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("猜这么多，").appendAutonym().append("会受不了的啦！"));
             return;
         }
 
@@ -102,21 +99,20 @@ public class GuessService implements Service {
         PlayMode playMode = params.getOrDefault("playMode", PlayMode.class, PlayMode.MANIA);
         Optional<User> optional = this.osuApiService.getUser(userParam, playMode);
         if (optional.isEmpty()) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" " + this.mutsumi.getName() + " 找不到用户。你是不是输错了……？"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .appendAutonym().append("找不到用户。你是不是输错了……？"));
             return;
         }
 
         User user = optional.get();
-        bot.sendMessage(groupId, Message.at(sender.getId())
-                .append(" " + this.mutsumi.getName() + " 正在查找用户 " + user.username
-                        + " 的最好成绩。稍等。"));
+        bot.sendMessage(groupId, Message.atThen(sender.getId())
+                .appendAutonym().append("正在查找用户 ").append(user.username).append(" 的最好成绩。稍等。"));
 
         Optional<List<Score>> optional2 = this.osuApiService.getBestScores(user.id, PlayMode.MANIA);
         if (optional2.isEmpty()) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" " + this.mutsumi.getName() + " 获取用户 " + user.id + " 最好成绩时发生错误。" +
-                            "\n……是不是应该报告给开发者？"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .appendAutonym().append("获取用户 ").append(user.id).append(" 最好成绩时发生错误。")
+                    .append("\n……是不是应该报告给开发者？"));
             return;
         }
         List<Score> bestScores = optional2.get();
@@ -143,16 +139,16 @@ public class GuessService implements Service {
         }
 
         if (beatmaps.isEmpty()) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" " + this.mutsumi.getName() + " 找不到用户 " + user.id + " 的最好成绩。"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .appendAutonym().append("找不到用户 ").append(user.username).append(" 的最好成绩。"));
             return;
         }
 
         GameInfo gameInfo = new GameInfo(user, beatmaps, playMode, true, false);
         this.gameInfos.put(groupId, gameInfo);
-        bot.sendMessage(groupId, Message.at(sender.getId())
-                .append(" " + this.mutsumi.getName() + " 从用户 " + user.username
-                        + " 选取了 " + beatmaps.size() + " 个成绩。开始猜歌！"));
+        bot.sendMessage(groupId, Message.atThen(sender.getId())
+                .appendAutonym().append("从用户 ").append(user.username)
+                .append(" 选取了 ").append(beatmaps.size()).append(" 个成绩。开始猜歌！"));
 
         this.sendGameInfo(bot, group, gameInfo);
     }
@@ -160,8 +156,8 @@ public class GuessService implements Service {
     private void commandGuess(MutsumiBot bot, Group group, Member sender, CommandMatcher.Result params) {
         long groupId = group.getId();
         if (!this.gameInfos.containsKey(groupId)) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 当前没有正在进行的开字母游戏。"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("当前没有正在进行的开字母游戏。"));
             return;
         }
 
@@ -170,31 +166,32 @@ public class GuessService implements Service {
         int index = params.getValue("index", Integer.class) - 1;
 
         if (index < 0 || index >= gameInfo.getSongCount()) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" ……有这个位置的谱面吗？"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("……有这个位置的谱面吗？"));
             return;
         }
 
         if (gameInfo.isDecrypted(index)) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 这是在猜一个已经揭晓的谱面……？"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("可是这个谱面已经结束了。"));
         } else if (gameInfo.guess(index, song)) {
             Beatmapset beatmapset = gameInfo.getBeatmap(index).beatmapset;
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 猜中谱面：" + beatmapset.artistUnicode + " - " + beatmapset.titleUnicode));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("猜中谱面：").append(beatmapset.artistUnicode)
+                    .append(" - ").append(beatmapset.titleUnicode));
             this.sendGameInfo(bot, group, gameInfo);
             this.checkFinished(bot, group, gameInfo);
         } else {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 不是这个谱面诶……是不是输错了？"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("不是这个谱面诶……是不是输错了？"));
         }
     }
 
     private void commandOpen(MutsumiBot bot, Group group, Member sender, CommandMatcher.Result params) {
         long groupId = group.getId();
         if (!this.gameInfos.containsKey(groupId)) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 当前没有正在进行的开字母游戏。"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("当前没有正在进行的开字母游戏。"));
             return;
         }
 
@@ -203,34 +200,34 @@ public class GuessService implements Service {
         if (gameInfo.open(character)) {
             this.sendGameInfo(bot, group, gameInfo);
         } else {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 字母 '" + character + "' 已经开过了。你再好好看看呢？"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("字母 '").append(character).append("' 已经开过了。你再好好看看呢？"));
         }
     }
 
     private void commandAnswer(MutsumiBot bot, Group group, Member sender, CommandMatcher.Result params) {
         long groupId = group.getId();
         if (!this.gameInfos.containsKey(groupId)) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 当前没有正在进行的开字母游戏。"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("当前没有正在进行的开字母游戏。"));
             return;
         }
 
         GameInfo gameInfo = this.gameInfos.get(groupId);
         Integer index = params.getValue("index", Integer.class);
         if (index == null) {
-            bot.sendMessage(groupId, Message.at(sender.getId())
-                    .append(" 唔，已经尽力了吗……那就给你看答案好了"));
+            bot.sendMessage(groupId, Message.atThen(sender.getId())
+                    .append("唔，已经尽力了吗……那就给你看答案好了"));
             gameInfo.decryptAll();
             this.sendGameInfo(bot, group, gameInfo);
             this.checkFinished(bot, group, gameInfo);
         } else {
             if (index <= 0 && index > gameInfo.getSongCount()) {
-                bot.sendMessage(groupId, Message.at(sender.getId())
-                        .append(" ……有这个位置的谱面吗？"));
+                bot.sendMessage(groupId, Message.atThen(sender.getId())
+                        .append("……有这个位置的谱面吗？"));
             } else {
-                bot.sendMessage(groupId, Message.at(sender.getId())
-                        .append(" 唔，猜不出来这个吗……那就给你看答案好了"));
+                bot.sendMessage(groupId, Message.atThen(sender.getId())
+                        .append("唔，猜不出来这个吗……那就给你看答案好了"));
                 gameInfo.decrypt(index - 1);
                 this.sendGameInfo(bot, group, gameInfo);
                 this.checkFinished(bot, group, gameInfo);
