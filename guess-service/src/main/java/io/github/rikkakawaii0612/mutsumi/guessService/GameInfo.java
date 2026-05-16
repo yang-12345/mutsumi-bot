@@ -15,6 +15,7 @@ import java.util.*;
 public class GameInfo {
     private static final HanyuPinyinOutputFormat PINYIN_FORMAT = new HanyuPinyinOutputFormat();
     private static final Map<Character, Character> JAPANESE_MAP = new HashMap<>();
+    private static final Map<Character, Character> RUSSIAN_MAP = new HashMap<>();
 
     private final User user;
     private final List<Beatmap> beatmaps;
@@ -95,6 +96,18 @@ public class GameInfo {
             return true;
         }
 
+        // 检查俄文
+        if (RUSSIAN_MAP.containsKey(c) && this.openedCharacters.contains(
+                RUSSIAN_MAP.get(c))) {
+            return true;
+        }
+
+        // 检查日文 (包括平假名, 片假名), 罗马音首字母对得上就行
+        if (JAPANESE_MAP.containsKey(c) && this.openedCharacters.contains(
+                JAPANESE_MAP.get(c))) {
+            return true;
+        }
+
         // 检查汉字, 只要拼音首字母对得上就行
         try {
             String[] arr = PinyinHelper.toHanyuPinyinStringArray(c, PINYIN_FORMAT);
@@ -108,9 +121,7 @@ public class GameInfo {
         } catch (BadHanyuPinyinOutputFormatCombination _) {
         }
 
-        // 检查日文 (包括平假名, 片假名), 罗马音首字母对得上就行
-        return JAPANESE_MAP.containsKey(c) && this.openedCharacters.contains(
-                JAPANESE_MAP.get(c));
+        return false;
     }
 
     public List<Character> getOpenedCharacters() {
@@ -187,11 +198,18 @@ public class GameInfo {
         this.decrypted.set(index, true);
     }
 
+    private static String removeAdditions(String rawTitle) {
+        return rawTitle.replaceAll(
+                "\\([^)]+ (?i:(ver(sion)?\\.?)|remix|mix|bootleg)\\)" +
+                "|\\(?(?i:feat[ .]\\.+)\\)?", "")
+                .trim();
+    }
 
     static {
         PINYIN_FORMAT.setCaseType(HanyuPinyinCaseType.LOWERCASE);
         PINYIN_FORMAT.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
 
+        // 日语平假名和片假名
         List.of('あ', 'ア').forEach(c -> JAPANESE_MAP.put(c, 'a'));
         List.of('い', 'イ').forEach(c -> JAPANESE_MAP.put(c, 'i'));
         List.of('う', 'ウ').forEach(c -> JAPANESE_MAP.put(c, 'u'));
@@ -211,5 +229,30 @@ public class GameInfo {
         List.of('だ', 'ダ', 'ぢ', 'ヂ', 'ʒ', 'づ', 'ヅ', 'で', 'デ', 'ど', 'ド').forEach(c -> JAPANESE_MAP.put(c, 'd'));
         List.of('ば', 'バ', 'び', 'ビ', 'ぶ', 'ブ', 'べ', 'ベ', 'ぼ', 'ボ').forEach(c -> JAPANESE_MAP.put(c, 'b'));
         List.of('ぱ', 'パ', 'ぴ', 'ピ', 'ぷ', 'プ', 'ぺ', 'ペ', 'ぽ', 'ポ').forEach(c -> JAPANESE_MAP.put(c, 'p'));
+
+        // 俄语小写字母序列
+        char[] russianLower = {
+                'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и',
+                'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т',
+                'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь',
+                'э', 'ю', 'я'
+        };
+
+        // 对应的拉丁小写字母
+        char[] latinLower = {
+                'a', 'b', 'v', 'g', 'd', 'e', 'e', 'z', 'z', 'i',
+                'y', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't',
+                'u', 'f', 'h', 'c', 'c', 's', 's', '`', 'y', '`',
+                'e', 'u', 'y'
+        };
+
+        for (int i = 0; i < russianLower.length; i++) {
+            char rusLower = russianLower[i];
+            char latLower = latinLower[i];
+            RUSSIAN_MAP.put(rusLower, latLower);
+            char rusUpper = Character.toUpperCase(rusLower);
+            char latUpper = Character.toUpperCase(latLower);
+            RUSSIAN_MAP.put(rusUpper, latUpper);
+        }
     }
 }
