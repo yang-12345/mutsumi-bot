@@ -2,6 +2,7 @@ package io.github.rikkakawaii0612.mutsumi.loader;
 
 import io.github.rikkakawaii0612.mutsumi.api.Service;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceLookup;
+import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import io.github.rikkakawaii0612.mutsumi.api.util.math.MathUtils;
 import io.github.rikkakawaii0612.mutsumi.impl.MutsumiImpl;
 import org.slf4j.Logger;
@@ -41,6 +42,13 @@ public class MutsumiServiceLoader {
             if (this.classLoader != null) {
                 this.unload();
             }
+
+            // 固定的 !mping 指令
+            this.mutsumi.getBotBus().addMessageHandler(((bot, group, sender, message) -> {
+                if ("!mping".equalsIgnoreCase(message.asString().trim())) {
+                    bot.sendMessage(group.getId(), Message.at(sender.getId()).appendAutonym().append(" is here!"));
+                }
+            }));
 
             this.mutsumi.loadConfigs();
 
