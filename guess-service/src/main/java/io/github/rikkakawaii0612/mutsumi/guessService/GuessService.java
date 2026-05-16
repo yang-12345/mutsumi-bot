@@ -147,8 +147,8 @@ public class GuessService implements Service {
         GameInfo gameInfo = new GameInfo(user, beatmaps, playMode, true, false);
         this.gameInfos.put(groupId, gameInfo);
         bot.sendMessage(groupId, Message.atThen(sender.getId())
-                .appendAutonym().append("从用户 ").append(user.username)
-                .append(" 选取了 ").append(beatmaps.size()).append(" 个成绩。开始猜歌！"));
+                .appendAutonym().append("从用户 ").append(user.username).append(" 的 ")
+                .append(playMode).append(" 模式中选取了 ").append(beatmaps.size()).append(" 个成绩。开始猜歌！"));
 
         this.sendGameInfo(bot, group, gameInfo);
     }
