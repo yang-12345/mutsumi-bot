@@ -17,8 +17,8 @@ import java.util.List;
 public class LocalMutsumiBot implements MutsumiBot {
     public static final Logger LOGGER = LoggerFactory.getLogger("MutsumiLocal");
 
-    private final Member owner = () -> 1L;
-    private final Group group = new Group() {
+    public static final Member OWNER = () -> 1L;
+    public static final Group GROUP = new Group() {
         @Override
         public long getId() {
             return 1L;
@@ -26,7 +26,7 @@ public class LocalMutsumiBot implements MutsumiBot {
 
         @Override
         public List<Member> getMembers() {
-            return List.of(owner);
+            return List.of(OWNER);
         }
     };
 
@@ -40,7 +40,7 @@ public class LocalMutsumiBot implements MutsumiBot {
 
     @Override
     public Group getGroup(long id) {
-        return id == 1 ? this.group : null;
+        return id == 1 ? GROUP : null;
     }
 
     @Override
@@ -57,13 +57,5 @@ public class LocalMutsumiBot implements MutsumiBot {
         } catch (IOException e) {
             LOGGER.info("Failed to write file '{}': ", fileName, e);
         }
-    }
-
-    public Group getGroup() {
-        return this.group;
-    }
-
-    public Member getOwner() {
-        return this.owner;
     }
 }
