@@ -1,13 +1,9 @@
 package io.github.rikkakawaii0612.mutsumi.impl;
 
-import io.github.rikkakawaii0612.mutsumi.api.Mutsumi;
 import io.github.rikkakawaii0612.mutsumi.api.contact.Group;
 import io.github.rikkakawaii0612.mutsumi.api.contact.Member;
 import io.github.rikkakawaii0612.mutsumi.api.contact.MutsumiBot;
-import io.github.rikkakawaii0612.mutsumi.api.contact.message.At;
-import io.github.rikkakawaii0612.mutsumi.api.contact.message.Image;
-import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
-import io.github.rikkakawaii0612.mutsumi.api.contact.message.Text;
+import io.github.rikkakawaii0612.mutsumi.api.contact.message.*;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.BotIsBeingMutedException;
 import net.mamoe.mirai.contact.MessageTooLargeException;
@@ -25,11 +21,9 @@ import java.util.List;
 public class MutsumiBotImpl implements MutsumiBot {
     public static final Logger LOGGER = LoggerFactory.getLogger("Mutsumi");
 
-    private final Mutsumi mutsumi;
     private final Bot bot;
 
-    public MutsumiBotImpl(Mutsumi mutsumi, Bot bot) {
-        this.mutsumi = mutsumi;
+    public MutsumiBotImpl(Bot bot) {
         this.bot = bot;
     }
 
@@ -42,7 +36,16 @@ public class MutsumiBotImpl implements MutsumiBot {
         }
 
         MessageChainBuilder builder = new MessageChainBuilder();
+        // 用于辅助添加自称前后的空格
+        boolean[] afterAutonym = new boolean[1];
         message.visit(m -> {
+            String str = m.asString();
+            if (afterAutonym[0] && !str.isEmpty()) {
+                afterAutonym[0] = false;
+                if (shouldAddSpace(str.charAt(0))) {
+                    builder.add(" ");
+                }
+            }
             switch (m) {
                 case At at -> builder.append(new net.mamoe.mirai.message.data.At(at.target()));
                 case Text text -> builder.append(text.content());
@@ -55,7 +58,16 @@ public class MutsumiBotImpl implements MutsumiBot {
                         LOGGER.warn("Failed to upload image {}: ", image.asString(), e);
                     }
                 }
-                default -> builder.append(m.asString());
+                case Autonym autonym -> {
+                    String s = builder.asMessageChain().contentToString();
+                    char c = s.charAt(s.length() - 1);
+                    if (shouldAddSpace(c)) {
+                        builder.add(" ");
+                    }
+                    builder.add(autonym.asString());
+                    afterAutonym[0] = true;
+                }
+                default -> builder.append(str);
             }
         });
 
@@ -109,5 +121,18 @@ public class MutsumiBotImpl implements MutsumiBot {
         } catch (Exception e) {
             LOGGER.warn("Failed to upload file '{}' in group {}: ", fileName, id, e);
         }
+    }
+
+    /**
+     * 用于检查自称消息类型前后是否应该加空格.
+     */
+    private static boolean shouldAddSpace(char c) {
+        if (!Character.isLetterOrDigit(c)) {
+            return false;
+        }
+        Character.UnicodeScript script = Character.UnicodeScript.of(c);
+        return script != Character.UnicodeScript.HAN
+                && script != Character.UnicodeScript.HIRAGANA
+                && script != Character.UnicodeScript.KATAKANA;
     }
 }

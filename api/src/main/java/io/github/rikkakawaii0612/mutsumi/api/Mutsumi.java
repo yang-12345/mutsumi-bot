@@ -11,19 +11,27 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.BotBus;
  *
  * <p>我起的嘿嘿 (
  *
- * <h2>Mutsumi 类的使用</h2>
+ * <h2>Mutsumi 核心类</h2>
  *
  * <p>{@link Mutsumi} 类只会在主程序启动时创建一份单例.
  * 其包含当前程序运行的 Bot 总线, 服务加载器, 配置等数据与信息.
  * 如果你写过 Minecraft Mod 的话, 这东西和 {@code MinecraftClient}
  * 或者 {@code Minecraft} 的位置差不多.
- * {@link Mutsumi} 接口的唯一实现类是 {@code MutsumiImpl} (位于 app 模块).
+ * {@link Mutsumi} 接口的唯一实现类是 {@code MutsumiImpl} (位于 app 模块),
+ * 其包含一些接口所没有的方法 (如服务加载).
+ *
+ * <h5>一般不应自行创建新的 {@link Mutsumi} 实现类, 也不应强转 {@link Mutsumi}
+ * 单例为 {@code MutsumiImpl}.</h5>
+ *
+ * <h2>单例的获取</h2>
  *
  * <p>在服务被加载时, {@link Service#load(String, ServiceLookup)}
- * 方法中传入的 {@link ServiceLookup} 对象内就包含 {@link Mutsumi} 对象.
- * 通常来说, 这是服务获取 {@link Mutsumi} 对象的唯一方法.
+ * 方法中传入的 {@link ServiceLookup} 对象内包含 {@link Mutsumi} 单例.
  *
- * <h2>配置</h2>
+ * <p>你也可以使用 {@link MutsumiProvider#getInstance()} 来获取单例.
+ * 其在主程序实例化 {@code MutsumiImpl} 后就立即赋值, 因此通常不会获取到 null.
+ *
+ * <h2>Config 配置</h2>
  *
  * <p>可以从 {@link Mutsumi} 实例中获取 {@link Config} 实例.
  * {@link Mutsumi} 会从 configs 目录加载配置.
@@ -37,8 +45,12 @@ import io.github.rikkakawaii0612.mutsumi.api.contact.BotBus;
  *
  * <p><s>总有人不喜欢管这东西叫 Mutsumi, 而想叫 Arisu. {@code @6r3²n}</s>
  *
- * <p>可以通过设置自定义名称来改变 Mutsumi 的自称. 发送消息时,
- * 一切 Mutsumi 的自称都应该改成 {@link #getName()} 方法引用.
+ * <p>可以通过设置自定义名称来改变 Mutsumi 的自称. 使用 {@link #getName()}
+ * 来获取 Mutsumi 当前的自称.
+ *
+ * <p>发送消息时, 可以通过消息类型
+ * {@link io.github.rikkakawaii0612.mutsumi.api.contact.message.Autonym}
+ * 来表示 Mutsumi 的自称.
  */
 public interface Mutsumi {
     BotBus getBotBus();
