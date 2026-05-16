@@ -141,7 +141,9 @@ public class GameInfo {
         String title = beatmap.beatmapset.title;
         Set<String> set = new HashSet<>(AliasSystem.getAliases(title));
         set.add(title);
+        set.add(removeAdditions(title));
         set.add(beatmap.beatmapset.titleUnicode);
+        set.add(removeAdditions(beatmap.beatmapset.titleUnicode));
         for (String s : set) {
             if (matches(s, text)) {
                 this.decrypted.set(index, true);
@@ -208,10 +210,11 @@ public class GameInfo {
      * </ul>
      */
     private static String removeAdditions(String rawTitle) {
-        return rawTitle.replaceAll(
-                "\\([^)]+ (?i:(ver(sion)?\\.?)|remix|mix|bootleg)\\)" +
-                "|\\(?(?i:feat[ .]\\.+)\\)?", "")
-                .trim();
+        String str = rawTitle.replaceAll(
+                "[(\\[][^)]+[ -](?i:(ver(sion)?\\.?|remix|mix|bootleg|edit|extended))[)\\]]" +
+                "|[(\\[]?(?i:feat[ .].+)[)\\]]?", "");
+        String s = str.replaceAll("\\p{P}+$", "").trim();
+        return s.length() <= 3 ? str.trim() : s;
     }
 
     static {
