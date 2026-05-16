@@ -198,6 +198,15 @@ public class GameInfo {
         this.decrypted.set(index, true);
     }
 
+    /**
+     * 将曲目标题的附加信息删除. 这些附加信息包括:
+     * <ul>
+     *     <li>(xxx ver.) 或者 [xxx ver.] 之类的版本信息 (ver, version, remix, mix,
+     *     bootleg, edit, extended)</li>
+     *     <li>feat. xxx 或者 feat xxx, 可以匹配外层的圆括号或方括号</li>
+     *     <li>所有标点符号, 除非删除后字符串长度小于等于 3</li>
+     * </ul>
+     */
     private static String removeAdditions(String rawTitle) {
         return rawTitle.replaceAll(
                 "\\([^)]+ (?i:(ver(sion)?\\.?)|remix|mix|bootleg)\\)" +
