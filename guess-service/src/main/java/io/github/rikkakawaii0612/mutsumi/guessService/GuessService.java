@@ -40,6 +40,12 @@ public class GuessService implements Service {
     public void unload() {
     }
 
+    @Override
+    public void onConfigReloaded(String id, ServiceLookup lookup) {
+        JsonNode config = lookup.getConfig().getOrCreate(id);
+        AliasSystem.loadConfig(config);
+    }
+
     public void onHandleMessage(MutsumiBot bot, Group group, Member sender, Message message) {
         String m = message.asString();
         String str = m.trim();

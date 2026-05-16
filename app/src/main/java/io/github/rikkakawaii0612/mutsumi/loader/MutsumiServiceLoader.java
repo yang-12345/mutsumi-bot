@@ -209,4 +209,17 @@ public class MutsumiServiceLoader {
             }
         }
     }
+
+    public void reloadConfigs() {
+        if (this.classLoader == null) {
+            return;
+        }
+
+        try {
+            ServiceLookup lookup = new ServiceLookup(this.mutsumi, this.idsToServices, this.mutsumi.getConfig());
+            this.idsToServices.forEach((id, service) -> service.service().onConfigReloaded(id, lookup));
+        } catch (Exception e) {
+            LOGGER.error("Failed to reload configs: ", e);
+        }
+    }
 }

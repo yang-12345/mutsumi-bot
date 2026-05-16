@@ -69,7 +69,7 @@ public class Main {
                     }
 
                     if ("reloadCfg".equalsIgnoreCase(command)) {
-                        mutsumiImpl.loadConfigs();
+                        mutsumiImpl.reloadConfigs();
                         continue;
                     }
 
