@@ -12,10 +12,6 @@ public class MessageChain implements Message {
         this.components = components;
     }
 
-    public void forEach(Consumer<Message> consumer) {
-        this.visit(consumer::accept);
-    }
-
     @Override
     public void visit(Visitor visitor) {
         this.components.forEach(visitor::accept);
@@ -24,7 +20,7 @@ public class MessageChain implements Message {
     @Override
     public String asString() {
         StringBuilder builder = new StringBuilder();
-        this.forEach(message -> builder.append(message.asString()));
+        this.visit(message -> builder.append(message.asString()));
         return builder.toString();
     }
 
