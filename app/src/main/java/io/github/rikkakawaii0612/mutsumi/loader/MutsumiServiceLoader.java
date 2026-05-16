@@ -46,7 +46,7 @@ public class MutsumiServiceLoader {
             // 固定的 !mping 指令
             this.mutsumi.getBotBus().addMessageHandler(((bot, group, sender, message) -> {
                 if ("!mping".equalsIgnoreCase(message.asString().trim())) {
-                    bot.sendMessage(group.getId(), Message.at(sender.getId()).appendAutonym().append(" is here!"));
+                    bot.sendMessage(group.getId(), Message.atThen(sender.getId()).append("叫").appendAutonym().append("吗？"));
                 }
             }));
 
