@@ -20,11 +20,41 @@ public class User {
     @JsonProperty("avatar_url")
     public String avatarUrl = "";
 
+    @JsonProperty("country_code")
+    public String countryCode = "";
+
+    @JsonProperty("default_group")
+    public String defaultGroup;
+
+    @JsonProperty("is_active")
+    public boolean active = false;
+
+    @JsonProperty("is_bot")
+    public boolean bot = false;
+
+    @JsonProperty("is_deleted")
+    public boolean deleted = false;
+
     @JsonProperty("is_online")
     public boolean online = false;
 
+    @JsonProperty("is_supporter")
+    public boolean supporter = false;
+
+    @JsonProperty("last_visit")
+    public String lastVisit;
+
+    @JsonProperty("pm_friends_only")
+    public boolean pmFriendsOnly = false;
+
+    @JsonProperty("profile_colour")
+    public String profileColour;
+
     @JsonProperty("statistics")
     public UserStatistics statistics;
+
+    @JsonProperty("beatmap_playcounts_count")
+    public int beatmapPlaycountsCount;
 
     public User() {
     }
@@ -49,6 +79,5 @@ public class User {
             return "osuApi.UserStatistics";
         }
     }
-
 
 }
