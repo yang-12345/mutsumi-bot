@@ -29,7 +29,7 @@ public class GameBeatmapCard extends BeatmapCardBase {
         titleText.setMinFontSize(32);
         titleText.setMaxFontSize(44);
         titleText.setMaxWidth(690);
-        titleText.setMaxHeight(85);
+        titleText.setMaxHeight(83);
         titleText.setPosition(195, 43 - titleText.getHeight() / 2);
 
         Text artistText = new Text(encrypted ?

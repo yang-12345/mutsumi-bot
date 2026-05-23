@@ -1,5 +1,7 @@
 package io.github.rikkakawaii0612.mutsumi.osuImage;
 
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
 import io.github.rikkakawaii0612.mutsumi.api.Mutsumi;
 import io.github.rikkakawaii0612.mutsumi.api.Service;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceLookup;
@@ -17,17 +19,41 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class OsuImageService implements Service {
     private static final Logger LOGGER = LoggerFactory.getLogger("OsuImageService");
+    private static final String[] MESSAGES = {
+            "%s 正在使用神秘技术处理图片……",
+            "%s 正在发挥超绝 P 图技艺……",
+            "%s 正在给收到的图片增添光彩……",
+            "%s 已收到你的答复。正在动用算力……",
+            "%s 正在接入 <希腊字母 API>……"
+    };
 
     private Mutsumi mutsumi;
 
     private final Map<Long, Map<Long, GreekInfo>> listeningInfos = new ConcurrentHashMap<>();
+
+    // omg 我 bot 因为希腊字母生成被封了!!! 故在此写一个限流.
+    // 5 个令牌容量, 10 秒补充一个令牌
+    private final Bucket limit = Bucket.builder()
+            .addLimit(Bandwidth.builder()
+                    .capacity(5L)
+                    .refillGreedy(1L, Duration.ofSeconds(10L))
+                    .build())
+            .build();
+
+    // 达到限制后的回复也得限制频率, 在恢复容量之前不会再提示
+    private boolean repliedLimitReached = false;
+
+    // 因为要写限流 所以把锁加回来了
+    private final Object lock = new Object();
 
     @Override
     public void load(String id, ServiceLookup lookup) {
@@ -88,8 +114,9 @@ public class OsuImageService implements Service {
         }
 
         map.remove(senderId);
+        String m = MESSAGES[ThreadLocalRandom.current().nextInt(MESSAGES.length)];
         bot.sendMessage(groupId, Message.at(senderId)
-                .append(" " + this.mutsumi.getName() + " 正在使用神秘技术处理图片……"));
+                .append(" " + String.format(m, this.mutsumi.getName())));
         byte[] result = GreekBackgroundGenerator.addGreek(image.getData(),
                 greekInfo.greek, greekInfo.chromaticAberration, greekInfo.glitch);
         bot.sendMessage(groupId, Message.at(senderId).append(Message.image(result)));
@@ -127,6 +154,21 @@ public class OsuImageService implements Service {
         } else {
             GreekBackgroundGenerator.Param param = pair.right();
             greekInfo = new GreekInfo(l, pair.left(), param.chromaticAberration(), param.glitch());
+        }
+
+        // 限流这一块
+        // 消耗令牌成功则取消已回复标记, 失败则在回复之后设置已回复标记
+        synchronized (this.lock) {
+            if (this.limit.tryConsume(1L)) {
+                this.repliedLimitReached = false;
+            } else {
+                if (!this.repliedLimitReached) {
+                    bot.sendMessage(groupId, Message.at(senderId)
+                            .append("当前发送希腊字母的请求过多, 请先让 " + this.mutsumi.getName() + " 休息一会儿。"));
+                }
+                this.repliedLimitReached = true;
+                return;
+            }
         }
 
         if (!this.listeningInfos.containsKey(groupId)) {

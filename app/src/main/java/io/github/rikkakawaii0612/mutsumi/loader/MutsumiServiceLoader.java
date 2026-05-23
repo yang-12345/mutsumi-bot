@@ -2,6 +2,7 @@ package io.github.rikkakawaii0612.mutsumi.loader;
 
 import io.github.rikkakawaii0612.mutsumi.api.Service;
 import io.github.rikkakawaii0612.mutsumi.api.ServiceLookup;
+import io.github.rikkakawaii0612.mutsumi.api.contact.message.Message;
 import io.github.rikkakawaii0612.mutsumi.api.util.math.MathUtils;
 import io.github.rikkakawaii0612.mutsumi.impl.MutsumiImpl;
 import org.slf4j.Logger;
@@ -41,6 +42,13 @@ public class MutsumiServiceLoader {
             if (this.classLoader != null) {
                 this.unload();
             }
+
+            // 固定的 !mping 指令
+            this.mutsumi.getBotBus().addMessageHandler(((bot, group, sender, message) -> {
+                if ("!mping".equalsIgnoreCase(message.asString().trim())) {
+                    bot.sendMessage(group.getId(), Message.atThen(sender.getId()).append("叫").appendAutonym().append("吗？"));
+                }
+            }));
 
             this.mutsumi.loadConfigs();
 
@@ -207,6 +215,19 @@ public class MutsumiServiceLoader {
                     LOGGER.warn("Service class loader seems to be not garbage-collected, which may occur memory leak!");
                 }
             }
+        }
+    }
+
+    public void reloadConfigs() {
+        if (this.classLoader == null) {
+            return;
+        }
+
+        try {
+            ServiceLookup lookup = new ServiceLookup(this.mutsumi, this.idsToServices, this.mutsumi.getConfig());
+            this.idsToServices.forEach((id, service) -> service.service().onConfigReloaded(id, lookup));
+        } catch (Exception e) {
+            LOGGER.error("Failed to reload configs: ", e);
         }
     }
 }

@@ -97,33 +97,32 @@ public class OsuApiService implements Service {
     }
 
     public Optional<User> getUser(String username) {
-        this.checkAccessToken();
-        if (this.accessToken == null) {
-            return Optional.empty();
-        }
-
-        String str = URLEncoder.encode(username, StandardCharsets.UTF_8);
-        Optional<JsonNode> optional = this.post("users/" + str);
-        if (optional.isEmpty()) {
-            return Optional.empty();
-        }
-
-        try {
-            return Optional.of(this.objectMapper.readValue(optional.get().toString(), User.class));
-        } catch (Exception e) {
-            LOGGER.warn("Failed to resolve User: ", e);
-            return Optional.empty();
-        }
+        return this.getUser0("@" + username, null);
     }
 
     public Optional<User> getUser(String username, PlayMode playMode) {
+        return this.getUser0("@" + username, playMode);
+    }
+
+    public Optional<User> getUser(long id) {
+        return this.getUser0(String.valueOf(id), null);
+    }
+
+    public Optional<User> getUser(long id, PlayMode playMode) {
+        return this.getUser0(String.valueOf(id), playMode);
+    }
+
+    private Optional<User> getUser0(String key, PlayMode playMode) {
         this.checkAccessToken();
         if (this.accessToken == null) {
             return Optional.empty();
         }
 
-        String str = URLEncoder.encode(username, StandardCharsets.UTF_8);
-        Optional<JsonNode> optional = this.post(String.format("users/%s/%s", str, playMode.getName()));
+        String str = URLEncoder.encode(key, StandardCharsets.UTF_8).replace("+", "%20");
+        if (playMode != null) {
+            str += "/" + playMode.getName();
+        }
+        Optional<JsonNode> optional = this.post("users/" + str);
         if (optional.isEmpty()) {
             return Optional.empty();
         }
@@ -297,33 +296,33 @@ public class OsuApiService implements Service {
             return Optional.empty();
         }
 
+        Optional<User> optional = this.getUser(id);
+        if (optional.isEmpty()) {
+            // id 本来就不存在也可能返回 empty, 那就别记录日志了
+            return Optional.empty();
+        }
+        int n = 1 + optional.get().beatmapPlaycountsCount / 100;
+
         List<JsonNode> nodes = new ArrayList<>();
 
         // 异步 post 获取游玩次数最多的谱面 (实际上包含了所有谱面)
-        // 每次循环尝试同时获取 4 页 (400 个) 谱面
-        try (ExecutorService executor = Executors.newFixedThreadPool(4)) {
-            for (int i = 0; ; i++) {
-                List<CompletableFuture<Optional<JsonNode>>> futures = new ArrayList<>();
+        try (ExecutorService executor = Executors.newFixedThreadPool(Math.min(30, n))) {
+            List<CompletableFuture<Optional<JsonNode>>> futures = new ArrayList<>();
 
-                for (int j = 0; j < 4; j++) {
-                    int offset = j + 4 * i;
-                    futures.add(CompletableFuture.supplyAsync(() -> this.post(
-                            String.format("users/%d/beatmapsets/most_played?limit=100&offset=%d",
-                                    id, offset * 100)), executor));
-                }
-                // 其实应该给 Optional.empty() 加个处理的
-                List<JsonNode> list = futures.stream()
-                        .map(CompletableFuture::join)
-                        .flatMap(Optional::stream)
-                        .toList();
-                // JSON 数组拆解存入列表
-                for (JsonNode node : list) {
-                    node.forEach(nodes::add);
-                }
-
-                if (nodes.isEmpty() || list.getLast().size() < 100) {
-                    break;
-                }
+            for (int i = 0; i < n; i++) {
+                int offset = i;
+                futures.add(CompletableFuture.supplyAsync(() -> this.post(
+                        String.format("users/%d/beatmapsets/most_played?limit=100&offset=%d",
+                                id, offset * 100)), executor));
+            }
+            // 其实应该给 Optional.empty() 加个处理的
+            List<JsonNode> list = futures.stream()
+                    .map(CompletableFuture::join)
+                    .flatMap(Optional::stream)
+                    .toList();
+            // JSON 数组拆解存入列表
+            for (JsonNode node : list) {
+                node.forEach(nodes::add);
             }
         }
 

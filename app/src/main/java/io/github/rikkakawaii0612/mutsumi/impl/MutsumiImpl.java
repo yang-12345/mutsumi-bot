@@ -91,6 +91,11 @@ public final class MutsumiImpl implements Mutsumi {
         LOGGER.info("Loaded {} config file(s)", this.configs.size());
     }
 
+    public void reloadConfigs() {
+        this.loadConfigs();
+        this.serviceLoader.reloadConfigs();
+    }
+
     private JsonNode createConfig(String id) {
         JsonNode node = OBJECT_MAPPER.createObjectNode();
         try {

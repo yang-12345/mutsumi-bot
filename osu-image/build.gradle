@@ -21,6 +21,9 @@ dependencies {
     // Jackson: JSON resolver
     compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
 
+    // Bucket4J: Message sending limit
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.17.0'
+
     compileOnly project(':api')
     compileOnly project(':osu-api')
 }

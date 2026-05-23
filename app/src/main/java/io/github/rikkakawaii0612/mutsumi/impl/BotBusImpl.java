@@ -48,7 +48,7 @@ public class BotBusImpl implements BotBus {
     public void start() {
         GlobalEventChannel.INSTANCE.subscribeAlways(BotOnlineEvent.class, event -> {
             Bot bot = event.getBot();
-            MutsumiBotImpl mutsumiBot = new MutsumiBotImpl(this.mutsumi, bot);
+            MutsumiBotImpl mutsumiBot = new MutsumiBotImpl(bot);
             this.idsToBots.put(bot.getId(), mutsumiBot);
             LOGGER.info("[Online] Bot {} connected", bot.getId());
         });
@@ -115,11 +115,8 @@ public class BotBusImpl implements BotBus {
     }
 
     public void sendToLocalBot(String text) {
-        Group group = this.localBot.getGroup();
-        Member member = this.localBot.getOwner();
         Message message = Message.text(text);
-
-        this.handleMessage(this.localBot, group, member, message);
+        this.handleMessage(this.localBot, LocalMutsumiBot.GROUP, LocalMutsumiBot.OWNER, message);
     }
 
     private void handleMessage(MutsumiBot mutsumiBot, Group group, Member sender, Message message) {
